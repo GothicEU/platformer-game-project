@@ -1,105 +1,103 @@
-import pygame
-from sprites import *
+import pygame, sys
+from settings import *
+from pygame.locals import *
+clock = pygame.time.Clock()
+pygame.init()
 
-# kolizje, zmienne do wartosci konfiguracyjnych, grafik, pelen ekran
-class Game:
-    def __init__(self):
-        pygame.init()
-        pygame.mixer.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Platform Game")
-        self.clock = pygame.time.Clock()
-        self.tlo = pygame.image.load('tlo.PNG')
-        self.walkRight = pygame.image.load('first.PNG')
-        self.walkLeft = pygame.image.load('first1.PNG')
-        self.running = True
+# do zrobienia dolaczenie do tego bardziej rozbudowanej fizyki
 
-    def new(self):
-        self.all_sprites = pygame.sprite.Group()
-        self.platforms = pygame.sprite.Group()
-        self.player = Player(self)
-        self.all_sprites.add(self.player)
-        p1 = Platform(0, HEIGHT - 40, WIDTH, 40)
-        self.all_sprites.add(p1)
-        self.platforms.add(p1)
-        p2 = Platform(WIDTH / 2 - 50, HEIGHT * 3 / 5, 100, 20)
-        self.all_sprites.add(p2)
-        self.platforms.add(p2)
-        p3 = Platform(WIDTH + 50, HEIGHT * 3 / 5, 100, 20)
-        self.all_sprites.add(p3)
-        self.platforms.add(p3)
-        p4 = Platform(WIDTH + 200, HEIGHT * 2 / 5, 100, 20)
-        self.all_sprites.add(p4)
-        self.platforms.add(p4)
-        p5 = Platform(WIDTH + 300, HEIGHT / 5, 100, 20)
-        self.all_sprites.add(p5)
-        self.platforms.add(p5)
-        self.run()
+pygame.display.set_caption('My Game Window')
 
-    def run(self):
-        self.playing = True
-        while self.playing:
-            self.clock.tick(FPS)
-            self.events()
-            self.update()
-            self.draw()
+moving_right = False
+moving_left = False
+player_rect = pygame.Rect(50,50, player_Right.get_width(), player_Right.get_height())
 
-    def update(self):
-        self.all_sprites.update()
-        hits = pygame.sprite.spritecollide(self.player, self.platforms, False)
-        if hits:
-            if self.player.vel.y > 0:
-                self.player.pos.y = hits[0].rect.top + 1
-                self.player.vel.y = 0
-            else:
-                self.player.vel.y *= -1
+def collision_test(rect,tiles):
+    hit_list = []
+    for tile in tiles:
+        if rect.colliderect(tile):
+            hit_list.append(tile)
+    return hit_list
 
-                
+def move(rect,movement,tiles):
+    collision_types = {'top':False,'bottom':False,'right':False,'left':False}
+    rect.x += movement[0]
+    hit_list = collision_test(rect,tiles)
+    for tile in hit_list:
+        if movement[0] > 0:
+            rect.right = tile.left
+            collision_types['right'] = True
+        elif movement[0] < 0:
+            rect.left = tile.right
+            collision_types['left'] = True
+    rect.y += movement[1]
+    hit_list = collision_test(rect,tiles)
+    for tile in hit_list:
+        if movement[1] > 0:
+            rect.bottom = tile.top
+            collision_types['bottom'] = True
+        elif movement[1] < 0:
+            rect.top = tile.bottom
+            collision_types['top'] = True
+    return rect, collision_types
 
-        if self.player.rect.right > WIDTH / 2:
-            self.player.pos.x -= max(abs(self.player.vel.x), 2)
-            for plat in self.platforms:
-                plat.rect.right -= max(abs(self.player.vel.x), 2)
-        if self.player.rect.left < WIDTH / 2:
-            self.player.pos.x += max(abs(self.player.vel.x), 2)
-            for plat in self.platforms:
-                plat.rect.right += max(abs(self.player.vel.x), 2)
-        if self.player.rect.top <= HEIGHT / 3:
-            self.player.pos.y += abs(self.player.vel.y)
-            for plat in self.platforms:
-                plat.rect.top += max(abs(self.player.vel.y), 2)
-        if self.player.rect.bottom > HEIGHT / 1.2:
-            self.player.pos.y -= abs(self.player.vel.y)
-            for plat in self.platforms:
-                plat.rect.bottom -= max(abs(self.player.vel.y), 2)
-    def events(self):
-        for event in pygame.event.get():
+while True:
+    display.blit(background, (0, 0))
 
-            if event.type==pygame.QUIT:
-                if self.playing:
-                    self.playing = False
-                self.running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    self.player.jump()
+    tile_rects = []
+    y = 0
+    for layer in game_map:
+        x = 0
+        for tile in layer:
+            if tile == '1':
+                display.blit(dirt, (x*dirt.get_width(), y*dirt.get_height()))
+            if tile == '2':
+                display.blit(grass, (x*grass.get_width(), y*grass.get_height()))
+            if tile != '0':
+                tile_rects.append(pygame.Rect(x*16,y*16,16,16))
+            x += 1
+        y += 1
+    player_movement = [0,0]
+    if moving_right == True:
+        player_movement[0] += 2
+    if moving_left == True:
+        player_movement[0] -= 2
+    player_movement[1] += player_y_momentum
+    player_y_momentum += 0.2
+    if player_y_momentum > 3:
+        player_y_momentum = 3
 
-    def draw(self):
+    player_rect,collisions = move(player_rect, player_movement, tile_rects)
 
-        self.screen.blit(self.tlo, (0, 0))
-        self.all_sprites.draw(self.screen)
-        pygame.display.flip()
+    if collisions['bottom'] == True:
+        air_timer = 0
+        player_y_momentum = 0
+    else:
+        air_timer += 1
 
-    def show_start_screen(self):
-        pass
+    display.blit(player_Right, (player_rect.x, player_rect.y))
 
-    def show_gameover_screen(self):
-        pass
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == KEYDOWN:
+            if event.key == K_d:
+                moving_right = True
+            if event.key == K_a:
+                moving_left = True
+            if event.key == K_SPACE:
+                if air_timer < 6:
+                    player_y_momentum = -5
+            if event.key == K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+        if event.type == KEYUP:
+            if event.key == K_d:
+                moving_right = False
+            if event.key == K_a:
+                moving_left = False
 
-
-g = Game()
-g.show_start_screen()
-while g.running:
-    g.new()
-    g.show_gameover_screen()
-
-pygame.quit()
+    screen.blit(pygame.transform.scale(display, WINDOW_SIZE), (0, 0))
+    pygame.display.update()
+    clock.tick(60)
