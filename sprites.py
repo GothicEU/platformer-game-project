@@ -4,7 +4,7 @@ vec = pygame.math.Vector2
 
 
 def collide_with_walls(sprite, group, direction):
-    if direction=='x':
+    if direction == 'x':
         hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_box)
         if hits:
             if sprite.vel.x > 0:
@@ -13,7 +13,7 @@ def collide_with_walls(sprite, group, direction):
                 sprite.pos.x = hits[0].rect.right + sprite.hit_box.width / 2
             sprite.vel.x = 0
             sprite.hit_box.centerx = sprite.pos.x
-    if direction=='y':
+    if direction == 'y':
         hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_box)
         if hits:
             if sprite.vel.y > 0:
@@ -26,38 +26,35 @@ def collide_with_walls(sprite, group, direction):
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-        global player_image
         self.groups = game.all_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pygame.Surface((player_image.get_width(), player_image.get_height()))
-        self.image.blit(player_image, (0, 0))
+        self.image = pygame.Surface((player_right.get_width(), player_right.get_height()))
+        self.image.blit(player_right, (0, 0))
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.hit_box = PLAYER_HIT_BOX
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.hit_box.center = self.rect.center
-        self.resp = (x * TILESIZE, y * TILESIZE)
+        self.resp = vec(x, y) * TILESIZE
         self.pos = vec(x, y) * TILESIZE
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
-
+        self.start_time = 0
+        self.timer = 0
+        self.isDashing = False
+        self.canMove = True
 
     def update(self):
-        self.acc = vec(0, PLAYER_GRAV)
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_d]:
-            if not self.game.crouching:
+        if self.canMove:
+            self.acc = vec(0, PLAYER_GRAV)
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_d]:
                 self.acc.x = PLAYER_ACC
-            else:
-                self.acc.x = PLAYER_ACC_PRZYKUC
-
-        if keys[pygame.K_a]:
-            if not self.game.crouching:
+            if keys[pygame.K_a]:
                 self.acc.x = -PLAYER_ACC
-            else:
-                self.acc.x = -PLAYER_ACC_PRZYKUC
+        else:
+            self.acc = vec(0, 0.001)
 
         self.acc.x += self.vel.x * PLAYER_FRICTION
         self.vel += self.acc
@@ -71,12 +68,50 @@ class Player(pygame.sprite.Sprite):
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_box.center
 
-        player_height = 32
+        if self.isDashing:
+            if self.vel.y == 0:
+                self.isDashing = False
+                self.canMove = True
+                self.start_time = 0
+                self.timer = 0
+            self.timer = pygame.time.get_ticks() - self.start_time
+            self.timer = self.timer / 1000
+            if self.timer >= 0.4:
+                self.canMove = True
+                self.start_time = 0
+                self.timer = 0
 
     def jump(self):
-        if self.vel.y == 0:
-            if self.pos.y < 720:
-                self.vel.y = -10
+        if self.vel.y == 0 and not self.isDashing:
+            self.vel.y = -10
+
+    def fall(self):
+        self.pos = vec(WIDTH / 2, HEIGHT / 2)
+        self.vel = vec(0, 0)
+        self.acc = vec(0, 0)
+
+    def r_dash(self):
+        if self.vel.y != 0 and not self.isDashing:
+            self.start_time = pygame.time.get_ticks()
+            self.isDashing = True
+            self.canMove = False
+            self.vel.x = 20
+            self.vel.y = 0
+
+    def l_dash(self):
+        if self.vel.y != 0 and not self.isDashing:
+            self.start_time = pygame.time.get_ticks()
+            self.isDashing = True
+            self.canMove = False
+            self.vel.x = -20
+            self.vel.y = 0
+
+    def crouch(self):
+        self.hit_box.height /= 2
+
+    def uncrouch(self):
+        self.hit_box.height *= 2
+
 
 def collide_hit_box(one, two):
     return one.hit_box.colliderect(two.rect)
