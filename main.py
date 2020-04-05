@@ -80,6 +80,7 @@ class Game:
                             self.player.image = player_crouch
                             self.player.hit_box = PLAYER_HIT_BOX_PRZYKUC
                             self.player.isCrouching = True
+                            self.player.isHoldingControl = True
                             self.player.rect = self.player.image.get_rect()
                 if event.key == pygame.K_e:
                     self.player.r_dash()
@@ -88,10 +89,7 @@ class Game:
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LCTRL:
-                    self.player.image = player_right
-                    self.player.hit_box = PLAYER_HIT_BOX
-                    self.player.isCrouching = False
-                    self.player.rect = self.player.image.get_rect()
+                    self.player.isHoldingControl = False
 
             if event.type == pygame.QUIT:
                 if self.playing:

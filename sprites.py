@@ -43,6 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.acc = vec(0, 0)
         self.start_time = 0
         self.timer = 0
+        self.isHoldingControl = False
         self.isCrouching = False
         self.isDashing = False
         self.isFalling = True
@@ -89,6 +90,16 @@ class Player(pygame.sprite.Sprite):
                 self.canMove = True
                 self.start_time = 0
                 self.timer = 0
+
+        if self.isCrouching:
+            self.rect.y -= 1
+            hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+            self.rect.y += 1
+            if not hits and not self.isHoldingControl:
+                self.image = player_right
+                self.hit_box = PLAYER_HIT_BOX
+                self.isCrouching = False
+                self.rect = self.image.get_rect()
 
     def jump(self):
         if self.vel.y == 0 and not self.isDashing:
