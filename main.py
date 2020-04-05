@@ -16,7 +16,7 @@ class Game:
         # intialize game window, etc
         pygame.init()
         pygame.mixer.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode(WINDOW_SIZE, pygame.FULLSCREEN)
         pygame.display.set_caption(TITLE)
         self.clock = pygame.time.Clock()
         self.load_data()
@@ -70,11 +70,28 @@ class Game:
                     self.playing = False
                     self.running = False
                 if event.key == pygame.K_SPACE:
-                    self.player.jump()
+                    if not self.player.isCrouching:
+                        if not self.player.isCrouching:
+                            self.player.jump()
+                if event.key == pygame.K_LCTRL:
+                    if self.player.vel.y == 0:
+                        if self.player.vel.x < 1:
+                            self.player.pos.y += 16
+                            self.player.image = player_crouch
+                            self.player.hit_box = PLAYER_HIT_BOX_PRZYKUC
+                            self.player.isCrouching = True
+                            self.player.rect = self.player.image.get_rect()
                 if event.key == pygame.K_e:
                     self.player.r_dash()
                 if event.key == pygame.K_q:
                     self.player.l_dash()
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LCTRL:
+                    self.player.image = player_right
+                    self.player.hit_box = PLAYER_HIT_BOX
+                    self.player.isCrouching = False
+                    self.player.rect = self.player.image.get_rect()
 
             if event.type == pygame.QUIT:
                 if self.playing:

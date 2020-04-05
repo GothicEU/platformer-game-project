@@ -26,23 +26,26 @@ def collide_with_walls(sprite, group, direction):
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
+        global player_image
         self.groups = game.all_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pygame.Surface((player_right.get_width(), player_right.get_height()))
-        self.image.blit(player_right, (0, 0))
+        self.image = pygame.Surface((player_image.get_width(), player_image.get_height()))
+        self.image.blit(player_image, (0, 0))
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.hit_box = PLAYER_HIT_BOX
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.hit_box.center = self.rect.center
-        self.resp = vec(x, y) * TILESIZE
+        self.resp = (x * TILESIZE, y * TILESIZE)
         self.pos = vec(x, y) * TILESIZE
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.start_time = 0
         self.timer = 0
+        self.isCrouching = False
         self.isDashing = False
+        self.isFalling = True
         self.canMove = True
 
     def update(self):
@@ -50,9 +53,15 @@ class Player(pygame.sprite.Sprite):
             self.acc = vec(0, PLAYER_GRAV)
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
-                self.acc.x = PLAYER_ACC
+                if not self.isCrouching:
+                    self.acc.x = PLAYER_ACC
+                else:
+                    self.acc.x = PLAYER_ACC_PRZYKUC
             if keys[pygame.K_a]:
-                self.acc.x = -PLAYER_ACC
+                if not self.isCrouching:
+                    self.acc.x = -PLAYER_ACC
+                else:
+                    self.acc.x = -PLAYER_ACC_PRZYKUC
         else:
             self.acc = vec(0, 0.001)
 
@@ -83,7 +92,8 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         if self.vel.y == 0 and not self.isDashing:
-            self.vel.y = -10
+            if self.pos.y < 720:
+                self.vel.y = -10
 
     def fall(self):
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
