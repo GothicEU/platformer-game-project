@@ -106,12 +106,6 @@ class Player(pygame.sprite.Sprite):
             self.vel.x = -20
             self.vel.y = 0
 
-    def crouch(self):
-        self.hit_box.height /= 2
-
-    def uncrouch(self):
-        self.hit_box.height *= 2
-
 
 def collide_hit_box(one, two):
     return one.hit_box.colliderect(two.rect)

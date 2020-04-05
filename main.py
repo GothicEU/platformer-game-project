@@ -71,16 +71,10 @@ class Game:
                     self.running = False
                 if event.key == pygame.K_SPACE:
                     self.player.jump()
-                if event.key == pygame.K_LCTRL:
-                    self.player.crouch()
                 if event.key == pygame.K_e:
                     self.player.r_dash()
                 if event.key == pygame.K_q:
                     self.player.l_dash()
-
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LCTRL:
-                    self.player.uncrouch()
 
             if event.type == pygame.QUIT:
                 if self.playing:
