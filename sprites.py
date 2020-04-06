@@ -26,7 +26,6 @@ def collide_with_walls(sprite, group, direction):
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-        global player_image
         self.groups = game.all_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -51,18 +50,27 @@ class Player(pygame.sprite.Sprite):
         self.isJumping = False
         self.isFalling = True
         self.canMove = True
+        self.moving_right = True
+        self.moving_left = False
 
     def update(self):
+        global player_image
         if self.canMove:
             self.acc = vec(0, PLAYER_GRAV)
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 if not self.isCrouching:
+                    self.moving_right = True
+                    self.moving_left = False
+                    self.image = player_right
                     self.acc.x = PLAYER_ACC
                 else:
                     self.acc.x = PLAYER_ACC_PRZYKUC
             if keys[pygame.K_a]:
                 if not self.isCrouching:
+                    self.moving_right = False
+                    self.moving_left = True
+                    self.image = player_left
                     self.acc.x = -PLAYER_ACC
                 else:
                     self.acc.x = -PLAYER_ACC_PRZYKUC
@@ -74,7 +82,11 @@ class Player(pygame.sprite.Sprite):
             hits = pygame.sprite.spritecollide(self, self.game.walls, False)
             self.rect.y += 1
             if not hits and not self.isHoldingControl:
-                self.image = player_right
+                if self.moving_left:
+                    player_image = player_left
+                if self.moving_right:
+                    player_image = player_right
+                self.image = player_image
                 self.hit_box = PLAYER_HIT_BOX
                 self.isCrouching = False
                 self.rect = self.image.get_rect()
@@ -135,7 +147,6 @@ class Player(pygame.sprite.Sprite):
             if self.pos.y < 720:
                 self.vel.y = -10
 
-
     def fall(self):
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
         self.vel = vec(0, 0)
@@ -160,6 +171,25 @@ class Player(pygame.sprite.Sprite):
 
 def collide_hit_box(one, two):
     return one.hit_box.colliderect(two.rect)
+
+
+class Camera:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def apply(self, entity):
+        return entity.rect.move(self.camera.topleft)
+
+    def update(self, target):
+        x = -target.rect.centerx + int(WIDTH / 2)
+        y = -target.rect.centery + int(HEIGHT / 2)
+        # limit scrolling
+        x = min(0, x)  # left
+        y = min(0, y)
+        x = max(-(self.width - WIDTH), x)
+        y = max(-(self.height - HEIGHT), y)
+        self.camera = pygame.Rect(x, y, self.width, self.height)
 
 
 class Wall(pygame.sprite.Sprite):

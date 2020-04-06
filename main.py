@@ -17,6 +17,7 @@ class Game:
         pygame.init()
         pygame.mixer.init()
         self.screen = pygame.display.set_mode(WINDOW_SIZE, pygame.FULLSCREEN)
+        pygame.display.update()
         pygame.display.set_caption(TITLE)
         self.clock = pygame.time.Clock()
         self.load_data()
@@ -38,6 +39,7 @@ class Game:
         # start a new game
         self.all_sprites = pygame.sprite.Group()
         self.walls = pygame.sprite.Group()
+        self.camera = Camera(len(self.map_data[0] * TILESIZE), len(self.map_data) * TILESIZE)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == "1":
@@ -50,6 +52,7 @@ class Game:
     def run(self):
         # Game Loop
         while self.playing:
+            self.dt = self.clock.tick(FPS) / 1000
             self.event()
             self.update()
             self.draw()
@@ -59,11 +62,12 @@ class Game:
         # Game Loop update
         self.all_sprites.update()
         self.player.draw_health()
+        self.camera.update(self.player)
 
     def event(self):
         # Game Loop events
-        if self.player.pos[1] > HEIGHT:
-            self.player.fall()
+        if self.player.pos.y >= HEIGHT:
+            self.player.pos = self.player.resp
         for event in pygame.event.get():
 
             if event.type == pygame.KEYDOWN:
@@ -104,7 +108,8 @@ class Game:
     def draw(self):
         # Game Loop draw
         self.screen.blit(tlo, (0, 0))
-        self.all_sprites.draw(self.screen)
+        for sprite in self.all_sprites:
+            self.screen.blit(sprite.image, self.camera.apply(sprite))
         pygame.display.flip()
 
     def show_start_screen(self):
