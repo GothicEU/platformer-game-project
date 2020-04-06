@@ -58,6 +58,7 @@ class Game:
     def update(self):
         # Game Loop update
         self.all_sprites.update()
+        self.player.draw_health()
 
     def event(self):
         # Game Loop events
@@ -70,9 +71,13 @@ class Game:
                     self.playing = False
                     self.running = False
                 if event.key == pygame.K_SPACE:
-                    if not self.player.isCrouching:
-                        if not self.player.isCrouching:
-                            self.player.jump()
+                    self.player.rect.y += 1
+                    hits = pygame.sprite.spritecollide(self.player, self.walls, False)
+                    self.player.rect.y -= 1
+                    if not self.player.isCrouching and not self.player.isJumping and hits:
+                        self.player.jump()
+                    else:
+                        self.player.double_jump()
                 if event.key == pygame.K_LCTRL:
                     if self.player.vel.y == 0:
                         if self.player.vel.x < 1:

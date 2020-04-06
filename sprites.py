@@ -42,10 +42,13 @@ class Player(pygame.sprite.Sprite):
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.start_time = 0
+        self.health = PLAYER_HEALTH
         self.timer = 0
         self.isHoldingControl = False
+        self.isDoubleJumping = False
         self.isCrouching = False
         self.isDashing = False
+        self.isJumping = False
         self.isFalling = True
         self.canMove = True
 
@@ -65,6 +68,16 @@ class Player(pygame.sprite.Sprite):
                     self.acc.x = -PLAYER_ACC_PRZYKUC
         else:
             self.acc = vec(0, 0.001)
+
+        if self.isCrouching:
+            self.rect.y -= 1
+            hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+            self.rect.y += 1
+            if not hits and not self.isHoldingControl:
+                self.image = player_right
+                self.hit_box = PLAYER_HIT_BOX
+                self.isCrouching = False
+                self.rect = self.image.get_rect()
 
         self.acc.x += self.vel.x * PLAYER_FRICTION
         self.vel += self.acc
@@ -91,20 +104,37 @@ class Player(pygame.sprite.Sprite):
                 self.start_time = 0
                 self.timer = 0
 
-        if self.isCrouching:
-            self.rect.y -= 1
-            hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+        if self.isJumping or self.isDoubleJumping:
             self.rect.y += 1
-            if not hits and not self.isHoldingControl:
-                self.image = player_right
-                self.hit_box = PLAYER_HIT_BOX
-                self.isCrouching = False
-                self.rect = self.image.get_rect()
+            hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+            self.rect.y -= 1
+            if hits:
+                self.isJumping = False
+                self.isDoubleJumping = False
+
+    def draw_health(self):
+        if self.health > 66:
+            col = GREEN
+        elif self.health > 33:
+            col = YELLOW
+        else:
+            col = RED
+        width = int(100 * self.health / PLAYER_HEALTH)
+        # self.health_bar = pygame.Rect(0, 0, width, 6)
+        # self.health_bar.pos = (10, 10)
 
     def jump(self):
-        if self.vel.y == 0 and not self.isDashing:
+        if self.vel.y == 0 and not self.isJumping and not self.isDashing:
+            self.isJumping = True
+            if self.pos.y < 720:
+                self.vel.y = -12
+
+    def double_jump(self):
+        if not self.isDoubleJumping and not self.isDashing:
+            self.isDoubleJumping = True
             if self.pos.y < 720:
                 self.vel.y = -10
+
 
     def fall(self):
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
@@ -130,19 +160,6 @@ class Player(pygame.sprite.Sprite):
 
 def collide_hit_box(one, two):
     return one.hit_box.colliderect(two.rect)
-
-
-class Map:
-    def __init__(self, filename):
-        self.data = []
-        with open(filename, "rt") as f:
-            for line in f:
-                self.data.append(line.strip())  # strips away any \n characters when read
-
-        self.tile_width = len(self.data[0])
-        self.tile_height = len(self.data)
-        self.width = self.tile_width * TILESIZE
-        self.height = self.tile_height * TILESIZE
 
 
 class Wall(pygame.sprite.Sprite):

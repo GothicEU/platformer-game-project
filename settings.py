@@ -5,8 +5,9 @@ FPS = 60
 HEIGHT = 720
 WIDTH = 1280
 
+PLAYER_HEALTH = 100
 PLAYER_GRAV = 0.8
-PLAYER_ACC = 0.5
+PLAYER_ACC = 0.8
 PLAYER_FRICTION = -0.12
 PLAYER_ACC_PRZYKUC = 0.2
 
@@ -29,3 +30,7 @@ player_height = player_right.get_height()
 
 PLAYER_HIT_BOX = pygame.Rect(0, 0, player_width, player_height)
 PLAYER_HIT_BOX_PRZYKUC = pygame.Rect(0, 0, player_width, player_height / 2)
+
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+YELLOW = (0, 255, 255)
