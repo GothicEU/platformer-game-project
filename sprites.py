@@ -61,7 +61,6 @@ class Player(pygame.sprite.Sprite):
         self.hasWalljump = False
         self.hasDash = False
 
-
     def update(self):
         global player_image
         if self.canMove:
@@ -76,7 +75,6 @@ class Player(pygame.sprite.Sprite):
                 else:
                     self.image = self.game.player_crouch_right
                     self.acc.x = PLAYER_ACC_PRZYKUC
-                    self.image = player_crouch_right
             if keys[pygame.K_a]:
                 if not self.isCrouching:
                     self.moving_right = False
@@ -86,7 +84,6 @@ class Player(pygame.sprite.Sprite):
                 else:
                     self.image = self.game.player_crouch_left
                     self.acc.x = -PLAYER_ACC_PRZYKUC
-                    self.image = player_crouch_left
         else:
             self.acc = vec(0, 0.001)
 
@@ -166,7 +163,6 @@ class Player(pygame.sprite.Sprite):
         if self.pos.y < len(self.game.map_data) * TILESIZE:
             self.vel.y = -13
 
-
     def double_jump(self):
         if not self.isDoubleJumping and self.hasSneakers:
             self.isDoubleJumping = True
@@ -211,7 +207,6 @@ class Player(pygame.sprite.Sprite):
                 self.canMove = False
                 self.vel.x = -20
                 self.vel.y = 0
-
 
 
 def collide_hit_box(one, two):

@@ -54,7 +54,6 @@ class Game:
         self.dirt_image = pygame.transform.scale(self.dirt_image, (TILESIZE, TILESIZE))
         self.grass_image = pygame.image.load('grass.PNG').convert_alpha()
         self.grass_image = pygame.transform.scale(self.grass_image, (TILESIZE, TILESIZE))
-        # TUTAAAAAAAAAAAAAAAAAAJJJJ
         self.mob_right = pygame.image.load('mob_right.PNG').convert_alpha()
         self.mob_right = pygame.transform.scale(self.mob_right, (self.mob_right.get_width(), self.mob_right.get_height()))
         self.mob_left = pygame.image.load('mob_left.PNG').convert_alpha()
@@ -63,9 +62,9 @@ class Game:
         self.zombie_right = pygame.transform.scale(self.zombie_right, (self.zombie_right.get_width(), self.zombie_right.get_height()))
         self.zombie_left = pygame.image.load('zombie_left.PNG').convert_alpha()
         self.zombie_left = pygame.transform.scale(self.zombie_left, (self.zombie_left.get_width(), self.zombie_left.get_height()))
-        self.player_right = pygame.image.load('right.PNG')
+        self.player_right = pygame.image.load('right.PNG').convert_alpha()
         self.player_right = pygame.transform.scale(self.player_right, (self.player_right.get_width(), self.player_right.get_height()))
-        self.player_left = pygame.image.load('left.PNG')
+        self.player_left = pygame.image.load('left.PNG').convert_alpha()
         self.player_left = pygame.transform.scale(self.player_left, (self.player_left.get_width(), self.player_left.get_height()))
         self.player_crouch_right = pygame.image.load('crouch_right.PNG')
         self.player_crouch_right = pygame.transform.scale(self.player_crouch_right, (self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
@@ -148,13 +147,9 @@ class Game:
                     if self.player.vel.y == 0:
                             self.player.pos.y += 16
                             if self.player.moving_right:
-                            # TUTAAAAAAAAAAAAAAAAAAAAAAAJJJJJJ
                                 self.player.image = self.player_crouch_right
                             else:
                                 self.player.image = self.player_crouch_left
-                                self.player.image = player_crouch_right
-                            else:
-                                self.player.image = player_crouch_left
                             self.player.hit_box = PLAYER_HIT_BOX_PRZYKUC
                             self.player.isCrouching = True
                             self.player.isHoldingControl = True
