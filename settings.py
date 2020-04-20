@@ -18,10 +18,11 @@ WINDOW_SIZE = (1280, 720)
 screen = pygame.display.set_mode(WINDOW_SIZE, pygame.FULLSCREEN)
 display = pygame.Surface((600, 400))
 
-tlo = pygame.image.load('tlo.PNG')
-player_right = pygame.image.load('right.PNG')
-player_left = pygame.image.load('left.PNG')
-player_crouch = pygame.image.load('crouch.PNG')
+tlo = pygame.image.load('tlo.png')
+player_right = pygame.image.load('right.png')
+player_left = pygame.image.load('left.png')
+player_crouch_right = pygame.image.load('crouch_right.png')
+player_crouch_left = pygame.image.load('crouch_left.png')
 player_image = player_right
 
 TILESIZE = 32
@@ -34,6 +35,9 @@ player_height = player_right.get_height()
 PLAYER_HIT_BOX = pygame.Rect(0, 0, player_width, player_height)
 PLAYER_HIT_BOX_PRZYKUC = pygame.Rect(0, 0, player_width, player_height / 2)
 
+BLACK = (0, 0, 0)
+GRAY = (100, 100, 100)
+WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 YELLOW = (0, 255, 255)

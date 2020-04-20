@@ -45,6 +45,8 @@ class Player(pygame.sprite.Sprite):
         self.timer = 0
         self.isHoldingControl = False
         self.isDoubleJumping = False
+        self.canDoubleJump = True
+        self.isWallJumping = False
         self.isCrouching = False
         self.isDashing = False
         self.isJumping = False
@@ -52,6 +54,9 @@ class Player(pygame.sprite.Sprite):
         self.canMove = True
         self.moving_right = True
         self.moving_left = False
+        self.hasSneakers = False
+        self.hasWalljump = False
+        self.hasDash = False
 
     def update(self):
         global player_image
@@ -66,6 +71,7 @@ class Player(pygame.sprite.Sprite):
                     self.acc.x = PLAYER_ACC
                 else:
                     self.acc.x = PLAYER_ACC_PRZYKUC
+                    self.image = player_crouch_right
             if keys[pygame.K_a]:
                 if not self.isCrouching:
                     self.moving_right = False
@@ -74,6 +80,7 @@ class Player(pygame.sprite.Sprite):
                     self.acc.x = -PLAYER_ACC
                 else:
                     self.acc.x = -PLAYER_ACC_PRZYKUC
+                    self.image = player_crouch_left
         else:
             self.acc = vec(0, 0.001)
 
@@ -116,36 +123,43 @@ class Player(pygame.sprite.Sprite):
                 self.start_time = 0
                 self.timer = 0
 
-        if self.isJumping or self.isDoubleJumping:
+        if self.isJumping or self.isDoubleJumping or self.isWallJumping:
             self.rect.y += 1
             hits = pygame.sprite.spritecollide(self, self.game.walls, False)
             self.rect.y -= 1
             if hits:
                 self.isJumping = False
+                self.isWallJumping = False
                 self.isDoubleJumping = False
+                self.canDoubleJump = True
 
-    def draw_health(self):
-        if self.health > 66:
-            col = GREEN
-        elif self.health > 33:
-            col = YELLOW
-        else:
-            col = RED
-        width = int(100 * self.health / PLAYER_HEALTH)
-        # self.health_bar = pygame.Rect(0, 0, width, 6)
-        # self.health_bar.pos = (10, 10)
+        if self.isWallJumping:
+            self.canDoubleJump = True
 
     def jump(self):
-        if self.vel.y == 0 and not self.isJumping and not self.isDashing:
-            self.isJumping = True
-            if self.pos.y < 720:
-                self.vel.y = -12
+        self.isJumping = True
+        self.vel.y = -12
 
     def double_jump(self):
-        if not self.isDoubleJumping and not self.isDashing:
+        if not self.isDoubleJumping and self.hasSneakers:
             self.isDoubleJumping = True
-            if self.pos.y < 720:
+            self.vel.y = -10
+
+    def wall_jump(self):
+        if self.hasWalljump:
+            self.isWallJumping = True
+            self.rect.x += 1
+            hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+            self.rect.x -= 1
+            if hits:
                 self.vel.y = -10
+                self.vel.x = -10
+            self.rect.x -= 1
+            hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+            self.rect.x += 1
+            if hits:
+                self.vel.y = -10
+                self.vel.x = 10
 
     def fall(self):
         self.pos = vec(WIDTH / 2, HEIGHT / 2)
@@ -153,20 +167,22 @@ class Player(pygame.sprite.Sprite):
         self.acc = vec(0, 0)
 
     def r_dash(self):
-        if self.vel.y != 0 and not self.isDashing:
-            self.start_time = pygame.time.get_ticks()
-            self.isDashing = True
-            self.canMove = False
-            self.vel.x = 20
-            self.vel.y = 0
+        if self.hasDash:
+            if self.vel.y != 0 and not self.isDashing:
+                self.start_time = pygame.time.get_ticks()
+                self.isDashing = True
+                self.canMove = False
+                self.vel.x = 20
+                self.vel.y = 0
 
     def l_dash(self):
-        if self.vel.y != 0 and not self.isDashing:
-            self.start_time = pygame.time.get_ticks()
-            self.isDashing = True
-            self.canMove = False
-            self.vel.x = -20
-            self.vel.y = 0
+        if self.hasDash:
+            if self.vel.y != 0 and not self.isDashing:
+                self.start_time = pygame.time.get_ticks()
+                self.isDashing = True
+                self.canMove = False
+                self.vel.x = -20
+                self.vel.y = 0
 
 
 def collide_hit_box(one, two):
@@ -216,3 +232,60 @@ class Wall2(pygame.sprite.Sprite):
         self.y = y
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
+
+
+class Sneakers(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.sneakers
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.sneakers_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        hits = pygame.sprite.spritecollide(self.game.player, self.game.sneakers, False)
+        if hits:
+            self.kill()
+            self.game.player.hasSneakers = True
+
+
+class Walljump(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.walljump
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.walljump_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        hits = pygame.sprite.spritecollide(self.game.player, self.game.walljump, False)
+        if hits:
+            self.kill()
+            self.game.player.hasWalljump = True
+
+
+class Dash(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.dash
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.dash_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        hits = pygame.sprite.spritecollide(self.game.player, self.game.dash, False)
+        if hits:
+            self.kill()
+            self.game.player.hasDash = True
