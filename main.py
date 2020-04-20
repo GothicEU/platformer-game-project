@@ -30,15 +30,36 @@ class Game:
         with open(os.path.join(game_folder, 'map.txt'), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
-        self.dirt_image = pygame.image.load('dirt.PNG').convert_alpha()
+        self.tlo = pygame.image.load('tlo.PNG').convert_alpha()
+        self.tlo = pygame.transform.scale(self.tlo, (WIDTH, HEIGHT))
+        self.dirt_image = pygame.image.load('dirt.PNG')
         self.dirt_image = pygame.transform.scale(self.dirt_image, (TILESIZE, TILESIZE))
         self.grass_image = pygame.image.load('grass.PNG').convert_alpha()
         self.grass_image = pygame.transform.scale(self.grass_image, (TILESIZE, TILESIZE))
+        self.mob_right = pygame.image.load('mob_right.PNG').convert_alpha()
+        self.mob_right = pygame.transform.scale(self.mob_right, (self.mob_right.get_width(), self.mob_right.get_height()))
+        self.mob_left = pygame.image.load('mob_left.PNG').convert_alpha()
+        self.mob_left = pygame.transform.scale(self.mob_left, (self.mob_left.get_width(), self.mob_left.get_height()))
+        self.zombie_right = pygame.image.load('zombie_right.PNG').convert_alpha()
+        self.zombie_right = pygame.transform.scale(self.zombie_right, (self.zombie_right.get_width(), self.zombie_right.get_height()))
+        self.zombie_left = pygame.image.load('zombie_left.PNG').convert_alpha()
+        self.zombie_left = pygame.transform.scale(self.zombie_left, (self.zombie_left.get_width(), self.zombie_left.get_height()))
+        self.player_right = pygame.image.load('right.PNG')
+        self.player_right = pygame.transform.scale(self.player_right, (self.player_right.get_width(), self.player_right.get_height()))
+        self.player_left = pygame.image.load('left.PNG')
+        self.player_left = pygame.transform.scale(self.player_left, (self.player_left.get_width(), self.player_left.get_height()))
+        self.player_crouch_right = pygame.image.load('crouch_right.PNG')
+        self.player_crouch_right = pygame.transform.scale(self.player_crouch_right, (self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
+        self.player_crouch_left = pygame.image.load('crouch_left.PNG')
+        self.player_crouch_left = pygame.transform.scale(self.player_crouch_left, (self.player_crouch_left.get_width(), self.player_crouch_left.get_height()))
+        self.player_image = self.player_right
+
 
     def new(self):
         # start a new game
         self.all_sprites = pygame.sprite.Group()
         self.walls = pygame.sprite.Group()
+        self.mobs = pygame.sprite.Group()
         self.camera = Camera(len(self.map_data[0] * TILESIZE), len(self.map_data) * TILESIZE)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
@@ -48,11 +69,16 @@ class Game:
                     Wall2(self, col, row)
                 if tile == "P":
                     self.player = Player(self, col, row)
+                if tile == 'M':
+                    Mob(self, col, row)
+                if tile == 'Z':
+                    Mob2(self, col, row)
 
     def run(self):
         # Game Loop
         while self.playing:
-            self.dt = self.clock.tick(FPS) / 1000
+            self.dt = self.clock.tick(FPS) / 1000.0
+            self.clock.tick(FPS)
             self.event()
             self.update()
             self.draw()
@@ -66,7 +92,7 @@ class Game:
 
     def event(self):
         # Game Loop events
-        if self.player.pos.y >= HEIGHT:
+        if self.player.pos.y >= len(self.map_data) * TILESIZE:
             self.player.pos = self.player.resp
         for event in pygame.event.get():
 
@@ -84,9 +110,11 @@ class Game:
                         self.player.double_jump()
                 if event.key == pygame.K_LCTRL:
                     if self.player.vel.y == 0:
-                        if self.player.vel.x < 1:
                             self.player.pos.y += 16
-                            self.player.image = player_crouch
+                            if self.player.moving_right:
+                                self.player.image = self.player_crouch_right
+                            else:
+                                self.player.image = self.player_crouch_left
                             self.player.hit_box = PLAYER_HIT_BOX_PRZYKUC
                             self.player.isCrouching = True
                             self.player.isHoldingControl = True
@@ -107,7 +135,7 @@ class Game:
 
     def draw(self):
         # Game Loop draw
-        self.screen.blit(tlo, (0, 0))
+        self.screen.blit(self.tlo, (0, 0))
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
         pygame.display.flip()
