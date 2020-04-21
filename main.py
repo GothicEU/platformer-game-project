@@ -29,12 +29,21 @@ def draw_player_health(surf, x, y, pct):
     pygame.draw.rect(surf, GRAY, outline_rect, 2)
 
 
-def draw_player_lives(surf, x, y, pct):
+def draw_player_lives(pct):
     x = 0
     while pct > 0:
-        screen.blit(heart, (120 + x, 10))
+        screen.blit(heart, (10 + x, 10))
         pct -= 1
         x += 40
+
+
+def draw_items(game):
+    if game.player.hasSneakers:
+        game.screen.blit(game.sneakers_image, (1174, 679))
+    if game.player.hasWalljump:
+        game.screen.blit(game.walljump_image, (1206, 679))
+    if game.player.hasDash:
+        game.screen.blit(game.dash_image, (1238, 679))
 
 
 class Game:
@@ -82,10 +91,10 @@ class Game:
                                                   (self.player_left.get_width(), self.player_left.get_height()))
         self.player_crouch_right = pygame.image.load('crouch_right.PNG').convert_alpha()
         self.player_crouch_right = pygame.transform.scale(self.player_crouch_right, (
-        self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
+            self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
         self.player_crouch_left = pygame.image.load('crouch_left.PNG').convert_alpha()
         self.player_crouch_left = pygame.transform.scale(self.player_crouch_left, (
-        self.player_crouch_left.get_width(), self.player_crouch_left.get_height()))
+            self.player_crouch_left.get_width(), self.player_crouch_left.get_height()))
         self.player_image = self.player_right
         self.sneakers_image = pygame.image.load('sneakers.png').convert_alpha()
         self.sneakers_image = pygame.transform.scale(self.sneakers_image, (TILESIZE, TILESIZE))
@@ -107,25 +116,25 @@ class Game:
         self.camera = Camera(len(self.map_data[0] * TILESIZE), len(self.map_data) * TILESIZE)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
-                if tile=="1":
+                if tile == "1":
                     Wall(self, col, row)
-                if tile=="2":
+                if tile == "2":
                     Wall2(self, col, row)
-                if tile=="P":
+                if tile == "P":
                     self.player = Player(self, col, row)
-                if tile=='M':
+                if tile == 'M':
                     Mob(self, col, row)
-                if tile=='Z':
+                if tile == 'Z':
                     Mob2(self, col, row)
-                if tile=="S":
+                if tile == "S":
                     Sneakers(self, col, row)
-                if tile=="W":
+                if tile == "W":
                     Walljump(self, col, row)
-                if tile=="D":
+                if tile == "D":
                     Dash(self, col, row)
-                if tile=="G":
+                if tile == "G":
                     Grave(self, col, row)
-                if tile=="H":
+                if tile == "H":
                     Lives(self, col, row)
 
     def run(self):
@@ -142,7 +151,6 @@ class Game:
         # Game Loop update
         self.all_sprites.update()
         self.camera.update(self.player)
-
         if self.player.lives == -1:
             for sprite in self.all_sprites:
                 sprite.kill()
@@ -151,25 +159,25 @@ class Game:
     def event(self):
         # Game Loop events
         for event in pygame.event.get():
-            if event.type==pygame.KEYDOWN:
-                if event.key==pygame.K_ESCAPE:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     self.playing = False
                     self.running = False
-                if event.key==pygame.K_SPACE:
+                if event.key == pygame.K_SPACE:
                     self.player.rect.x += 1
                     hits = pygame.sprite.spritecollide(self.player, self.walls, False)
                     self.player.rect.x -= 2
                     hits2 = pygame.sprite.spritecollide(self.player, self.walls, False)
                     self.player.rect.x += 1
-                    if self.player.vel.y!=0 and not self.player.isWallJumping and (hits or hits2):
+                    if self.player.vel.y != 0 and not self.player.isWallJumping and (hits or hits2):
                         self.player.wall_jump()
-                    elif self.player.vel.y==0 and not self.player.isCrouching and not self.player.isJumping:
+                    elif self.player.vel.y == 0 and not self.player.isCrouching and not self.player.isJumping:
                         self.player.jump()
                     else:
                         self.player.double_jump()
 
-                if event.key==pygame.K_LCTRL:
-                    if self.player.vel.y==0:
+                if event.key == pygame.K_LCTRL:
+                    if self.player.vel.y == 0:
                         self.player.pos.y += 16
                         if self.player.moving_right:
                             self.player.image = self.player_crouch_right
@@ -179,16 +187,16 @@ class Game:
                         self.player.isCrouching = True
                         self.player.isHoldingControl = True
                         self.player.rect = self.player.image.get_rect()
-                if event.key==pygame.K_e:
+                if event.key == pygame.K_e:
                     self.player.r_dash()
-                if event.key==pygame.K_q:
+                if event.key == pygame.K_q:
                     self.player.l_dash()
 
-            if event.type==pygame.KEYUP:
-                if event.key==pygame.K_LCTRL:
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LCTRL:
                     self.player.isHoldingControl = False
 
-            if event.type==pygame.QUIT:
+            if event.type == pygame.QUIT:
                 if self.playing:
                     self.playing = False
                 self.running = False
@@ -198,8 +206,9 @@ class Game:
         self.screen.blit(self.tlo, (0, 0))
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
-        draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
-        draw_player_lives(self.screen, 50, 10, self.player.lives)
+        draw_player_health(self.screen, 10, 690, self.player.health / PLAYER_HEALTH)
+        draw_player_lives(self.player.lives)
+        draw_items(self)
         pygame.display.flip()
 
     def show_start_screen(self):
@@ -212,10 +221,10 @@ class Game:
         while waiting:
             self.clock.tick(FPS)
             for event in pygame.event.get():
-                if event.type==pygame.KEYUP:
-                    if event.key==pygame.K_RETURN:
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_RETURN:
                         waiting = False
-                    if event.key==pygame.K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE:
                         waiting = False
                         self.running = False
 
@@ -231,15 +240,14 @@ class Game:
         while waiting:
             self.clock.tick(FPS)
             for event in pygame.event.get():
-                if event.type==pygame.KEYUP:
-                    if event.key==pygame.K_RETURN:
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_RETURN:
                         waiting = False
                         self.running = True
                         self.playing = True
-                    if event.key==pygame.K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE:
                         waiting = False
                         self.running = False
-
 
     def draw_text(self, text, size, color, x, y):
         font = pygame.font.Font(self.font_name, size)
