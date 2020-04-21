@@ -29,6 +29,14 @@ def draw_player_health(surf, x, y, pct):
     pygame.draw.rect(surf, GRAY, outline_rect, 2)
 
 
+def draw_player_lives(surf, x, y, pct):
+    x = 0
+    while pct > 0:
+        screen.blit(heart, (120 + x, 10))
+        pct -= 1
+        x += 40
+
+
 class Game:
     def __init__(self):
         # intialize game window, etc
@@ -41,6 +49,7 @@ class Game:
         self.load_data()
         self.running = True
         self.playing = True
+        self.font_name = pygame.font.match_font(FONT_NAME)
 
     def load_data(self):
         game_folder = os.path.dirname(__file__)
@@ -55,21 +64,28 @@ class Game:
         self.grass_image = pygame.image.load('grass.PNG').convert_alpha()
         self.grass_image = pygame.transform.scale(self.grass_image, (TILESIZE, TILESIZE))
         self.mob_right = pygame.image.load('mob_right.PNG').convert_alpha()
-        self.mob_right = pygame.transform.scale(self.mob_right, (self.mob_right.get_width(), self.mob_right.get_height()))
+        self.mob_right = pygame.transform.scale(self.mob_right,
+                                                (self.mob_right.get_width(), self.mob_right.get_height()))
         self.mob_left = pygame.image.load('mob_left.PNG').convert_alpha()
         self.mob_left = pygame.transform.scale(self.mob_left, (self.mob_left.get_width(), self.mob_left.get_height()))
         self.zombie_right = pygame.image.load('zombie_right.PNG').convert_alpha()
-        self.zombie_right = pygame.transform.scale(self.zombie_right, (self.zombie_right.get_width(), self.zombie_right.get_height()))
+        self.zombie_right = pygame.transform.scale(self.zombie_right,
+                                                   (self.zombie_right.get_width(), self.zombie_right.get_height()))
         self.zombie_left = pygame.image.load('zombie_left.PNG').convert_alpha()
-        self.zombie_left = pygame.transform.scale(self.zombie_left, (self.zombie_left.get_width(), self.zombie_left.get_height()))
+        self.zombie_left = pygame.transform.scale(self.zombie_left,
+                                                  (self.zombie_left.get_width(), self.zombie_left.get_height()))
         self.player_right = pygame.image.load('right.PNG').convert_alpha()
-        self.player_right = pygame.transform.scale(self.player_right, (self.player_right.get_width(), self.player_right.get_height()))
+        self.player_right = pygame.transform.scale(self.player_right,
+                                                   (self.player_right.get_width(), self.player_right.get_height()))
         self.player_left = pygame.image.load('left.PNG').convert_alpha()
-        self.player_left = pygame.transform.scale(self.player_left, (self.player_left.get_width(), self.player_left.get_height()))
-        self.player_crouch_right = pygame.image.load('crouch_right.PNG')
-        self.player_crouch_right = pygame.transform.scale(self.player_crouch_right, (self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
-        self.player_crouch_left = pygame.image.load('crouch_left.PNG')
-        self.player_crouch_left = pygame.transform.scale(self.player_crouch_left, (self.player_crouch_left.get_width(), self.player_crouch_left.get_height()))
+        self.player_left = pygame.transform.scale(self.player_left,
+                                                  (self.player_left.get_width(), self.player_left.get_height()))
+        self.player_crouch_right = pygame.image.load('crouch_right.PNG').convert_alpha()
+        self.player_crouch_right = pygame.transform.scale(self.player_crouch_right, (
+        self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
+        self.player_crouch_left = pygame.image.load('crouch_left.PNG').convert_alpha()
+        self.player_crouch_left = pygame.transform.scale(self.player_crouch_left, (
+        self.player_crouch_left.get_width(), self.player_crouch_left.get_height()))
         self.player_image = self.player_right
         self.sneakers_image = pygame.image.load('sneakers.png').convert_alpha()
         self.sneakers_image = pygame.transform.scale(self.sneakers_image, (TILESIZE, TILESIZE))
@@ -77,34 +93,40 @@ class Game:
         self.walljump_image = pygame.transform.scale(self.walljump_image, (TILESIZE, TILESIZE))
         self.dash_image = pygame.image.load('dash.png').convert_alpha()
         self.dash_image = pygame.transform.scale(self.dash_image, (TILESIZE, TILESIZE))
+        self.grave_image = pygame.image.load('grave.PNG').convert_alpha()
+        self.grave_image = pygame.transform.scale(self.grave_image, (24, 32))
+        self.heart_image = pygame.image.load('lives.PNG').convert_alpha()
+        self.heart_image = pygame.transform.scale(self.heart_image, (TILESIZE, TILESIZE))
 
     def new(self):
         # start a new game
         self.all_sprites = pygame.sprite.Group()
         self.walls = pygame.sprite.Group()
         self.mobs = pygame.sprite.Group()
-        self.sneakers = pygame.sprite.Group()
-        self.walljump = pygame.sprite.Group()
-        self.dash = pygame.sprite.Group()
+        self.items = pygame.sprite.Group()
         self.camera = Camera(len(self.map_data[0] * TILESIZE), len(self.map_data) * TILESIZE)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
-                if tile == "1":
+                if tile=="1":
                     Wall(self, col, row)
-                if tile == "2":
+                if tile=="2":
                     Wall2(self, col, row)
-                if tile == "P":
+                if tile=="P":
                     self.player = Player(self, col, row)
-                if tile == 'M':
+                if tile=='M':
                     Mob(self, col, row)
-                if tile == 'Z':
+                if tile=='Z':
                     Mob2(self, col, row)
-                if tile == "S":
+                if tile=="S":
                     Sneakers(self, col, row)
-                if tile == "W":
+                if tile=="W":
                     Walljump(self, col, row)
-                if tile == "D":
+                if tile=="D":
                     Dash(self, col, row)
+                if tile=="G":
+                    Grave(self, col, row)
+                if tile=="H":
+                    Lives(self, col, row)
 
     def run(self):
         # Game Loop
@@ -121,49 +143,52 @@ class Game:
         self.all_sprites.update()
         self.camera.update(self.player)
 
+        if self.player.lives == -1:
+            for sprite in self.all_sprites:
+                sprite.kill()
+                self.playing = False
+
     def event(self):
         # Game Loop events
-        if self.player.pos.y >= len(self.map_data) * TILESIZE:
-            self.player.pos = self.player.resp
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
                     self.playing = False
                     self.running = False
-                if event.key == pygame.K_SPACE:
+                if event.key==pygame.K_SPACE:
                     self.player.rect.x += 1
                     hits = pygame.sprite.spritecollide(self.player, self.walls, False)
                     self.player.rect.x -= 2
                     hits2 = pygame.sprite.spritecollide(self.player, self.walls, False)
                     self.player.rect.x += 1
-                    if self.player.vel.y != 0 and not self.player.isWallJumping and (hits or hits2):
+                    if self.player.vel.y!=0 and not self.player.isWallJumping and (hits or hits2):
                         self.player.wall_jump()
-                    elif self.player.vel.y == 0 and not self.player.isCrouching and not self.player.isJumping:
+                    elif self.player.vel.y==0 and not self.player.isCrouching and not self.player.isJumping:
                         self.player.jump()
                     else:
                         self.player.double_jump()
 
-                if event.key == pygame.K_LCTRL:
-                    if self.player.vel.y == 0:
-                            self.player.pos.y += 16
-                            if self.player.moving_right:
-                                self.player.image = self.player_crouch_right
-                            else:
-                                self.player.image = self.player_crouch_left
-                            self.player.hit_box = PLAYER_HIT_BOX_PRZYKUC
-                            self.player.isCrouching = True
-                            self.player.isHoldingControl = True
-                            self.player.rect = self.player.image.get_rect()
-                if event.key == pygame.K_e:
+                if event.key==pygame.K_LCTRL:
+                    if self.player.vel.y==0:
+                        self.player.pos.y += 16
+                        if self.player.moving_right:
+                            self.player.image = self.player_crouch_right
+                        else:
+                            self.player.image = self.player_crouch_left
+                        self.player.hit_box = PLAYER_HIT_BOX_PRZYKUC.copy()
+                        self.player.isCrouching = True
+                        self.player.isHoldingControl = True
+                        self.player.rect = self.player.image.get_rect()
+                if event.key==pygame.K_e:
                     self.player.r_dash()
-                if event.key == pygame.K_q:
+                if event.key==pygame.K_q:
                     self.player.l_dash()
 
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LCTRL:
+            if event.type==pygame.KEYUP:
+                if event.key==pygame.K_LCTRL:
                     self.player.isHoldingControl = False
 
-            if event.type == pygame.QUIT:
+            if event.type==pygame.QUIT:
                 if self.playing:
                     self.playing = False
                 self.running = False
@@ -174,14 +199,54 @@ class Game:
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
         draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
+        draw_player_lives(self.screen, 50, 10, self.player.lives)
         pygame.display.flip()
 
     def show_start_screen(self):
-        # Game start screen
-        pass
+        # game splash/start screen
+        self.screen.fill(BGCOLOR)
+        self.draw_text(TITLE, 48, BLACK, WIDTH / 2, HEIGHT / 4)
+        self.draw_text("Nacisnij Enter, zeby zaczac nowa gre", 32, BLACK, WIDTH / 2, HEIGHT / 2)
+        pygame.display.flip()
+        waiting = True
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pygame.event.get():
+                if event.type==pygame.KEYUP:
+                    if event.key==pygame.K_RETURN:
+                        waiting = False
+                    if event.key==pygame.K_ESCAPE:
+                        waiting = False
+                        self.running = False
 
     def show_go_screen(self):
-        pass
+        # game over/continue
+        if not self.running:
+            return
+        self.screen.fill(BGCOLOR)
+        self.draw_text("KONIEC GRY", 48, BLACK, WIDTH / 2, HEIGHT / 4)
+        self.draw_text("Nacisnij Enter, zeby sprobowac ponowanie", 22, BLACK, WIDTH / 2, HEIGHT * 3 / 4)
+        pygame.display.flip()
+        waiting = True
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pygame.event.get():
+                if event.type==pygame.KEYUP:
+                    if event.key==pygame.K_RETURN:
+                        waiting = False
+                        self.running = True
+                        self.playing = True
+                    if event.key==pygame.K_ESCAPE:
+                        waiting = False
+                        self.running = False
+
+
+    def draw_text(self, text, size, color, x, y):
+        font = pygame.font.Font(self.font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x, y)
+        self.screen.blit(text_surface, text_rect)
 
 
 g = Game()

@@ -44,6 +44,7 @@ class Player(pygame.sprite.Sprite):
         self.acc = vec(0, 0)
         self.start_time = 0
         self.health = PLAYER_HEALTH
+        self.lives = 2
         self.timer = 0
         self.isHoldingControl = False
         self.isDoubleJumping = False
@@ -97,7 +98,7 @@ class Player(pygame.sprite.Sprite):
                 if self.moving_right:
                     player_image = self.game.player_right
                 self.image = player_image
-                self.hit_box = PLAYER_HIT_BOX
+                self.hit_box = PLAYER_HIT_BOX.copy()
                 self.isCrouching = False
                 self.rect = self.image.get_rect()
 
@@ -105,20 +106,47 @@ class Player(pygame.sprite.Sprite):
         self.rect.y -= 1
         hits = pygame.sprite.spritecollide(self, self.game.mobs, False)
         self.rect.y += 1
-
         if hits and self.timer > 9:
             if self.image==self.game.player_right:
                 self.vel.x -= 20
                 self.vel.y -= 5
+                self.health -= 20
             if self.image==self.game.player_left:
                 self.vel.x += 20
                 self.vel.y += 5
+                self.health -= 20
             if self.image==self.game.player_crouch_right:
                 self.vel.x -= 20
+                self.health -= 20
             if self.image==self.game.player_crouch_left:
                 self.vel.x += 20
+                self.health -= 20
 
             self.timer = 0
+
+        self.rect.y += 1
+        hits2 = pygame.sprite.spritecollide(self, self.game.mobs, False)
+        self.rect.y -= 1
+        if hits2 and self.timer > 9:
+            if self.image==self.game.player_right:
+                self.vel.x = 20
+                self.vel.y = 20
+                self.health -= 20
+            if self.image==self.game.player_left:
+                self.vel.x = 20
+                self.vel.y = 20
+                self.health -= 20
+            if self.image==self.game.player_crouch_right:
+                self.vel.x = 20
+                self.health -= 20
+            if self.image==self.game.player_crouch_left:
+                self.vel.x = 20
+                self.health -= 20
+
+            self.timer = 0
+
+        if self.health <= 0 or self.pos.y >= len(self.game.map_data) * TILESIZE:
+            self.die()
 
         self.acc.x += self.vel.x * PLAYER_FRICTION
         self.vel += self.acc
@@ -158,6 +186,14 @@ class Player(pygame.sprite.Sprite):
         if self.isWallJumping:
             self.canDoubleJump = True
 
+    def die(self):
+        self.pos = self.resp
+        self.vel = vec(0, 0)
+        self.acc = vec(0, 0)
+        self.health = PLAYER_HEALTH
+        self.lives -= 1
+
+
     def jump(self):
         self.isJumping = True
         if self.pos.y < len(self.game.map_data) * TILESIZE:
@@ -185,14 +221,10 @@ class Player(pygame.sprite.Sprite):
                 self.vel.y = -10
                 self.vel.x = 10
 
-    def fall(self):
-        self.pos = vec(WIDTH / 2, HEIGHT / 2)
-        self.vel = vec(0, 0)
-        self.acc = vec(0, 0)
 
     def r_dash(self):
         if self.hasDash:
-            if self.vel.y != 0 and not self.isDashing:
+            if self.vel.y!=0 and not self.isDashing:
                 self.start_time = pygame.time.get_ticks()
                 self.isDashing = True
                 self.canMove = False
@@ -201,7 +233,7 @@ class Player(pygame.sprite.Sprite):
 
     def l_dash(self):
         if self.hasDash:
-            if self.vel.y != 0 and not self.isDashing:
+            if self.vel.y!=0 and not self.isDashing:
                 self.start_time = pygame.time.get_ticks()
                 self.isDashing = True
                 self.canMove = False
@@ -256,7 +288,6 @@ class Wall2(pygame.sprite.Sprite):
         self.y = y
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
-
 
 
 class Mob(pygame.sprite.Sprite):
@@ -377,34 +408,37 @@ class Mob2(pygame.sprite.Sprite):
         self.dis_y = self.rect.y - self.game.player.rect.y
 
         if self.min_dis_x > self.dis_x > -self.min_dis_x and self.min_dis_y > self.dis_y > -self.min_dis_y:
-            if self.dis_x <= 0 and self.image == self.game.zombie_right:
+            if self.dis_x <= 0 and self.image==self.game.zombie_right:
                 self.czySee = True
                 self.vel.x = 0.8
                 self.pos.x += 4
-                self.timer += 1
-                if self.timer > 40:
-                    self.vel.y -= 13
-                    self.timer = 0
+                self.rect.x += 1
+                hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+                self.rect.x -= 2
+                if hits and self.vel.y == 0:
+                    self.vel.y -= 12
             else:
                 self.czySee = False
-                self.timer = 0
 
-            if self.dis_x > 0 and self.image == self.game.zombie_left:
+            if self.dis_x > 0 and self.image==self.game.zombie_left:
                 self.czySee = True
                 self.vel.x = -0.8
                 self.pos.x -= 4
-                self.timer += 1
-                if self.timer > 40:
-                    self.vel.y -= 13
-                    self.timer = 0
+                self.rect.x -= 1
+                hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+                self.rect.x += 2
+                if hits and self.vel.y == 0:
+                    self.vel.y -= 12
+
+            if self.vel.y==0:
+                self.czyJump = False
         else:
             self.czySee = False
-            self.timer = 0
 
         if not self.czySee:
             if self.vel.x==0:
                 self.ifhit = True
-                if self.image == self.game.zombie_left:
+                if self.image==self.game.zombie_left:
                     self.image = self.game.zombie_right
                 else:
                     self.image = self.game.zombie_left
@@ -413,7 +447,7 @@ class Mob2(pygame.sprite.Sprite):
 
 class Sneakers(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites, game.sneakers
+        self.groups = game.all_sprites, game.items
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = game.sneakers_image
@@ -424,15 +458,14 @@ class Sneakers(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        hits = pygame.sprite.spritecollide(self.game.player, self.game.sneakers, False)
-        if hits:
+        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
             self.kill()
             self.game.player.hasSneakers = True
 
 
 class Walljump(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites, game.walljump
+        self.groups = game.all_sprites, game.items
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = game.walljump_image
@@ -443,15 +476,14 @@ class Walljump(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        hits = pygame.sprite.spritecollide(self.game.player, self.game.walljump, False)
-        if hits:
+        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
             self.kill()
             self.game.player.hasWalljump = True
 
 
 class Dash(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites, game.dash
+        self.groups = game.all_sprites, game.items
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = game.dash_image
@@ -462,8 +494,38 @@ class Dash(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        hits = pygame.sprite.spritecollide(self.game.player, self.game.dash, False)
-        if hits:
+        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
+            self.remove(self.game.items)
             self.kill()
             self.game.player.hasDash = True
 
+
+class Grave(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.grave_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
+class Lives(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.items
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = heart
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
+            self.kill()
+            self.game.player.lives += 1
