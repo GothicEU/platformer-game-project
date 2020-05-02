@@ -46,6 +46,7 @@ class Player(pygame.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.lives = 2
         self.timer = 0
+        self.attack = False
         self.isHoldingControl = False
         self.isDoubleJumping = False
         self.canDoubleJump = True
@@ -55,6 +56,7 @@ class Player(pygame.sprite.Sprite):
         self.isJumping = False
         self.isFalling = True
         self.canMove = True
+        self.czas = 0
         self.moving_right = True
         self.moving_left = False
         self.timer = 10
@@ -64,6 +66,10 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         global player_image
+
+        if self.attack:
+            self.czas += 1
+
         if self.canMove:
             self.acc = vec(0, PLAYER_GRAV)
             keys = pygame.key.get_pressed()
@@ -71,7 +77,8 @@ class Player(pygame.sprite.Sprite):
                 if not self.isCrouching:
                     self.moving_right = True
                     self.moving_left = False
-                    self.image = self.game.player_right
+                    if self.attack==False:
+                        self.image = self.game.player_right
                     self.acc.x = PLAYER_ACC
                 else:
                     self.image = self.game.player_crouch_right
@@ -80,13 +87,42 @@ class Player(pygame.sprite.Sprite):
                 if not self.isCrouching:
                     self.moving_right = False
                     self.moving_left = True
-                    self.image = self.game.player_left
+                    if self.attack==False:
+                        self.image = self.game.player_left
                     self.acc.x = -PLAYER_ACC
                 else:
                     self.image = self.game.player_crouch_left
                     self.acc.x = -PLAYER_ACC_PRZYKUC
         else:
             self.acc = vec(0, 0.001)
+
+        if self.attack and self.czas < 2:
+            Sword(self.game, self.pos.x, self.pos.y)
+            if self.image==self.game.player_right:
+                self.image = self.game.player_attack_right
+            if self.image==self.game.player_left:
+                self.image = self.game.player_attack_left
+
+        if self.czas > 4 and self.attack:
+            self.attack = False
+            if self.image==self.game.player_attack_right:
+                self.image = self.game.player_right
+            if self.image==self.game.player_attack_left:
+                self.image = self.game.player_left
+            self.czas = 0
+
+        self.rect.y -= 1
+        hits = pygame.sprite.spritecollide(self, self.game.mobs, False)
+        self.rect.y += 1
+        if hits:
+            if self.image==self.game.player_attack_right:
+                self.vel.x -= 20
+                self.vel.y -= 5
+                self.health -= 20
+            if self.image==self.game.player_attack_left:
+                self.vel.x += 20
+                self.vel.y += 5
+                self.health -= 20
 
         if self.isCrouching:
             self.rect.y -= 1
@@ -193,7 +229,6 @@ class Player(pygame.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.lives -= 1
 
-
     def jump(self):
         self.isJumping = True
         if self.pos.y < len(self.game.map_data) * TILESIZE:
@@ -220,7 +255,6 @@ class Player(pygame.sprite.Sprite):
             if hits:
                 self.vel.y = -10
                 self.vel.x = 10
-
 
     def r_dash(self):
         if self.hasDash:
@@ -302,6 +336,7 @@ class Mob(pygame.sprite.Sprite):
         self.hit_box = MOB_HIT_BOX.copy()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.hit_box.center = self.rect.center
+        self.health = 50
         self.start_x = x
         self.path = [x * TILESIZE - 120, x * TILESIZE + 120]
         self.pos = vec(x, y) * TILESIZE
@@ -313,6 +348,20 @@ class Mob(pygame.sprite.Sprite):
 
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
+
+        self.rect.y -= 1
+        hits = pygame.sprite.spritecollide(self, self.game.weapons, False)
+        self.rect.y += 1
+        if hits:
+            if self.game.player.image == self.game.player_attack_right:
+                self.vel.x = 30
+                self.health -= 10
+            if self.game.player.image == self.game.player_attack_left:
+                self.vel.x = -30
+                self.health -= 10
+
+        if self.health <= 0:
+            self.kill()
 
         if not self.ifhit:
             if self.pos.x > self.path[1]:
@@ -362,9 +411,12 @@ class Mob2(pygame.sprite.Sprite):
         self.hit_box = ZOMBIE_HIT_BOX.copy()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.hit_box.center = self.rect.center
-        self.start_x = x
+        self.x = x * TILESIZE
+        self.y = y * TILESIZE
+        self.health = 100
         self.path = [x * TILESIZE - 120, x * TILESIZE + 120]
         self.pos = vec(x, y) * TILESIZE
+        self.health = 100
         self.ile_x = 0
         self.ifhit = False
         self.change = 1
@@ -380,6 +432,19 @@ class Mob2(pygame.sprite.Sprite):
 
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
+
+        self.rect.y -= 1
+        hits = pygame.sprite.spritecollide(self, self.game.weapons, False)
+        self.rect.y += 1
+        if hits:
+            if self.game.player.image==self.game.player_attack_right:
+                self.vel.x = 20
+                self.health -= 10
+            if self.game.player.image==self.game.player_attack_left:
+                self.vel.x = -20
+                self.health -= 10
+        if self.health <= 0:
+            self.kill()
 
         if not self.czySee:
             if not self.ifhit:
@@ -404,6 +469,9 @@ class Mob2(pygame.sprite.Sprite):
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_box.center
 
+        if self.pos.y >= len(self.game.map_data) * TILESIZE:
+            self.kill()
+
         self.dis_x = self.rect.x - self.game.player.rect.x
         self.dis_y = self.rect.y - self.game.player.rect.y
 
@@ -415,7 +483,7 @@ class Mob2(pygame.sprite.Sprite):
                 self.rect.x += 1
                 hits = pygame.sprite.spritecollide(self, self.game.walls, False)
                 self.rect.x -= 2
-                if hits and self.vel.y == 0:
+                if hits and self.vel.y==0:
                     self.vel.y -= 12
             else:
                 self.czySee = False
@@ -427,7 +495,7 @@ class Mob2(pygame.sprite.Sprite):
                 self.rect.x -= 1
                 hits = pygame.sprite.spritecollide(self, self.game.walls, False)
                 self.rect.x += 2
-                if hits and self.vel.y == 0:
+                if hits and self.vel.y==0:
                     self.vel.y -= 12
 
             if self.vel.y==0:
@@ -458,7 +526,7 @@ class Sneakers(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
+        if self.rect.x - 32 < self.game.player.rect.x < self.rect.x + 32 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
             self.kill()
             self.game.player.hasSneakers = True
 
@@ -476,7 +544,7 @@ class Walljump(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
+        if self.rect.x - 32 < self.game.player.rect.x < self.rect.x + 32 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
             self.kill()
             self.game.player.hasWalljump = True
 
@@ -494,7 +562,7 @@ class Dash(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
+        if self.rect.x - 32 < self.game.player.rect.x < self.rect.x + 32 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
             self.remove(self.game.items)
             self.kill()
             self.game.player.hasDash = True
@@ -513,12 +581,38 @@ class Grave(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
 
+class Grave2(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.grave2_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
+class Fence(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.fence_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
 class Lives(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.items
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = heart
+        self.image = self.game.heart_image
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
@@ -526,6 +620,34 @@ class Lives(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        if self.rect.x - 33 < self.game.player.rect.x < self.rect.x + 33 and self.rect.y - 33 < self.game.player.rect.y < self.rect.y + 33:
+        if self.rect.x - 32 < self.game.player.rect.x < self.rect.x + 32 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
             self.kill()
             self.game.player.lives += 1
+
+
+class Sword(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.weapons
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pygame.Surface((45, 45))
+        self.image.blit(self.game.sword, (0, 0))
+        self.image.set_colorkey((0, 0, 0))
+        self.rect = (self.image.get_rect())
+        self.hit_box = SWORD_HIT_BOX.copy()
+        self.rect.center = (WIDTH / 2, HEIGHT / 2)
+        self.hit_box.center = self.rect.center
+        if self.game.player.image==self.game.player_right:
+            self.rect.x = x + 12
+            self.rect.y = y - 15
+        elif self.game.player.image==self.game.player_left:
+            self.rect.x = x - 56
+            self.rect.y = y - 15
+        self.ile = 0
+
+    def update(self):
+
+        self.ile += 1
+        if self.ile > 2:
+            self.kill()
+            self.ile = 0
