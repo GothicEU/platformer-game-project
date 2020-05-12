@@ -29,21 +29,12 @@ def draw_player_health(surf, x, y, pct):
     pygame.draw.rect(surf, GRAY, outline_rect, 2)
 
 
-def draw_player_lives(pct):
+def draw_player_lives(surf, x, y, pct):
     x = 0
     while pct > 0:
-        screen.blit(heart, (10 + x, 10))
+        screen.blit(heart, (120 + x, 10))
         pct -= 1
         x += 40
-
-
-def draw_items(game):
-    if game.player.hasSneakers:
-        game.screen.blit(game.sneakers_image, (1174, 679))
-    if game.player.hasWalljump:
-        game.screen.blit(game.walljump_image, (1206, 679))
-    if game.player.hasDash:
-        game.screen.blit(game.dash_image, (1238, 679))
 
 
 class Game:
@@ -58,7 +49,8 @@ class Game:
         self.load_data()
         self.running = True
         self.playing = True
-        self.font_name = pygame.font.match_font(FONT_NAME)
+        self.isMaczuga = False
+        self.isMiecz = False
 
     def load_data(self):
         game_folder = os.path.dirname(__file__)
@@ -66,14 +58,6 @@ class Game:
         with open(os.path.join(game_folder, 'map.txt'), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
-        self.spike1 = pygame.image.load('spikes_up.png').convert_alpha()
-        self.spike1 = pygame.transform.scale(self.spike1, (self.spike1.get_width(), self.spike1.get_height()))
-        self.spike2 = pygame.image.load('spikes_down.png').convert_alpha()
-        self.spike2 = pygame.transform.scale(self.spike2, (self.spike2.get_width(), self.spike2.get_height()))
-        self.spike3 = pygame.image.load('spikes_left.png').convert_alpha()
-        self.spike3 = pygame.transform.scale(self.spike3, (self.spike3.get_width(), self.spike3.get_height()))
-        self.spike4 = pygame.image.load('spikes_right.png').convert_alpha()
-        self.spike4 = pygame.transform.scale(self.spike4, (self.spike3.get_width(), self.spike3.get_height()))
         self.tlo = pygame.image.load('tlo2.PNG').convert_alpha()
         self.tlo = pygame.transform.scale(self.tlo, (WIDTH, HEIGHT))
         self.dirt_image = pygame.image.load('dirt.PNG').convert_alpha()
@@ -81,25 +65,39 @@ class Game:
         self.grass_image = pygame.image.load('grass.PNG').convert_alpha()
         self.grass_image = pygame.transform.scale(self.grass_image, (TILESIZE, TILESIZE))
         self.mob_right = pygame.image.load('mob_right.PNG').convert_alpha()
-        self.mob_right = pygame.transform.scale(self.mob_right, (self.mob_right.get_width(), self.mob_right.get_height()))
+        self.mob_right = pygame.transform.scale(self.mob_right,(self.mob_right.get_width(), self.mob_right.get_height()))
         self.mob_left = pygame.image.load('mob_left.PNG').convert_alpha()
         self.mob_left = pygame.transform.scale(self.mob_left, (self.mob_left.get_width(), self.mob_left.get_height()))
         self.zombie_right = pygame.image.load('zombie_right.PNG').convert_alpha()
-        self.zombie_right = pygame.transform.scale(self.zombie_right, (self.zombie_right.get_width(), self.zombie_right.get_height()))
+        self.zombie_right = pygame.transform.scale(self.zombie_right,(self.zombie_right.get_width(), self.zombie_right.get_height()))
         self.zombie_left = pygame.image.load('zombie_left.PNG').convert_alpha()
-        self.zombie_left = pygame.transform.scale(self.zombie_left, (self.zombie_left.get_width(), self.zombie_left.get_height()))
+        self.zombie_left = pygame.transform.scale(self.zombie_left,(self.zombie_left.get_width(), self.zombie_left.get_height()))
         self.player_right = pygame.image.load('right.PNG').convert_alpha()
-        self.player_right = pygame.transform.scale(self.player_right, (self.player_right.get_width(), self.player_right.get_height()))
+        self.player_right = pygame.transform.scale(self.player_right,(self.player_right.get_width(), self.player_right.get_height()))
         self.player_left = pygame.image.load('left.PNG').convert_alpha()
         self.player_left = pygame.transform.scale(self.player_left, (self.player_left.get_width(), self.player_left.get_height()))
+        self.player_right_maczuga = pygame.image.load('right_maczuga.PNG').convert_alpha()
+        self.player_right_maczuga = pygame.transform.scale(self.player_right_maczuga, (55, 64))
+        self.player_left_maczuga = pygame.image.load('left_maczuga.PNG').convert_alpha()
+        self.player_left_maczuga = pygame.transform.scale(self.player_left_maczuga, (55, 64))
+        self.player_right_miecz = pygame.image.load('right_miecz.PNG').convert_alpha()
+        self.player_right_miecz = pygame.transform.scale(self.player_right_miecz, (55, 64))
+        self.player_left_miecz = pygame.image.load('left_miecz.PNG').convert_alpha()
+        self.player_left_miecz = pygame.transform.scale(self.player_left_miecz, (55, 64))
         self.player_crouch_right = pygame.image.load('crouch_right.PNG').convert_alpha()
-        self.player_crouch_right = pygame.transform.scale(self.player_crouch_right, (self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
+        self.player_crouch_right = pygame.transform.scale(self.player_crouch_right, (
+        self.player_crouch_right.get_width(), self.player_crouch_right.get_height()))
         self.player_crouch_left = pygame.image.load('crouch_left.PNG').convert_alpha()
-        self.player_crouch_left = pygame.transform.scale(self.player_crouch_left, (self.player_crouch_left.get_width(), self.player_crouch_left.get_height()))
-        self.player_attack_right = pygame.image.load('right_attack.PNG').convert_alpha()
-        self.player_attack_right = pygame.transform.scale(self.player_attack_right,(55, 64))
-        self.player_attack_left = pygame.image.load('left_attack.PNG').convert_alpha()
-        self.player_attack_left = pygame.transform.scale(self.player_attack_left, (55, 64))
+        self.player_crouch_left = pygame.transform.scale(self.player_crouch_left, (
+        self.player_crouch_left.get_width(), self.player_crouch_left.get_height()))
+        self.player_attack_right_miecz = pygame.image.load('right_attack_miecz.PNG').convert_alpha()
+        self.player_attack_right_miecz = pygame.transform.scale(self.player_attack_right_miecz,(55, 64))
+        self.player_attack_left_miecz = pygame.image.load('left_attack_miecz.PNG').convert_alpha()
+        self.player_attack_left_miecz = pygame.transform.scale(self.player_attack_left_miecz, (55, 64))
+        self.player_attack_right_maczuga = pygame.image.load('right_attack_maczuga.PNG').convert_alpha()
+        self.player_attack_right_maczuga = pygame.transform.scale(self.player_attack_right_maczuga,(55, 64))
+        self.player_attack_left_maczuga = pygame.image.load('left_attack_maczuga.PNG').convert_alpha()
+        self.player_attack_left_maczuga = pygame.transform.scale(self.player_attack_left_maczuga, (55, 64))
         self.player_image = self.player_right
         self.sneakers_image = pygame.image.load('sneakers.png').convert_alpha()
         self.sneakers_image = pygame.transform.scale(self.sneakers_image, (TILESIZE, TILESIZE))
@@ -117,14 +115,26 @@ class Game:
         self.heart_image = pygame.transform.scale(self.heart_image, (TILESIZE, TILESIZE))
         self.start_screen = pygame.image.load('start_screen.PNG').convert_alpha()
         self.start_screen = pygame.transform.scale(self.start_screen, (WIDTH, HEIGHT))
-        self.game_over = pygame.image.load('game_over2.png').convert_alpha()
-        self.game_over = pygame.transform.scale(self.game_over, (WIDTH, HEIGHT))
         self.title = pygame.image.load('title3.PNG').convert_alpha()
         self.title = pygame.transform.scale(self.title, (self.title.get_width(), self.title.get_height()))
+        self.game_over = pygame.image.load('game_over2.png').convert_alpha()
+        self.game_over = pygame.transform.scale(self.game_over, (WIDTH, HEIGHT))
         self.napis_startowy = pygame.image.load('napis_startowy1.PNG').convert_alpha()
         self.napis_startowy = pygame.transform.scale(self.napis_startowy, (474, 24))
         self.sword = pygame.image.load('sword.PNG').convert_alpha()
         self.sword = pygame.transform.scale(self.sword, (45, 45))
+        self.spike1 = pygame.image.load('spikes_up.png').convert_alpha()
+        self.spike1 = pygame.transform.scale(self.spike1, (self.spike1.get_width(), self.spike1.get_height()))
+        self.spike2 = pygame.image.load('spikes_down.png').convert_alpha()
+        self.spike2 = pygame.transform.scale(self.spike2, (self.spike2.get_width(), self.spike2.get_height()))
+        self.spike3 = pygame.image.load('spikes_left.png').convert_alpha()
+        self.spike3 = pygame.transform.scale(self.spike3, (self.spike3.get_width(), self.spike3.get_height()))
+        self.spike4 = pygame.image.load('spikes_right.png').convert_alpha()
+        self.spike4 = pygame.transform.scale(self.spike4, (self.spike3.get_width(), self.spike3.get_height()))
+        self.maczuga = pygame.image.load('maczuga1.png').convert_alpha()
+        self.maczuga = pygame.transform.scale(self.maczuga, (self.maczuga.get_width(), self.maczuga.get_height()))
+        self.miecz = pygame.image.load('miecz1.png').convert_alpha()
+        self.miecz = pygame.transform.scale(self.miecz, (self.miecz.get_width(), self.miecz.get_height()))
 
     def new(self):
         # start a new game
@@ -157,9 +167,9 @@ class Game:
                     Grave(self, col, row)
                 if tile == "H":
                     Lives(self, col, row)
-                if tile=="C":
+                if tile == "C":
                     Grave2(self, col, row)
-                if tile=="F":
+                if tile == "F":
                     Fence(self, col, row)
                 if tile == "3":
                     Spikes1(self, col, row)
@@ -169,6 +179,10 @@ class Game:
                     Spikes3(self, col, row)
                 if tile == "6":
                     Spikes4(self, col, row)
+                if tile == "K":
+                    Maczuga(self, col, row)
+                if tile == "B":
+                    Miecz(self, col, row)
 
     def run(self):
         # Game Loop
@@ -184,6 +198,7 @@ class Game:
         # Game Loop update
         self.all_sprites.update()
         self.camera.update(self.player)
+
         if self.player.lives == -1:
             for sprite in self.all_sprites:
                 sprite.kill()
@@ -192,25 +207,26 @@ class Game:
     def event(self):
         # Game Loop events
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
                     self.playing = False
                     self.running = False
-                if event.key == pygame.K_SPACE:
+                if event.key==pygame.K_SPACE:
                     self.player.rect.x += 1
                     hits = pygame.sprite.spritecollide(self.player, self.walls, False)
-                    self.player.rect.x -= 2
+                    self.player.rect.x -= 1
+                    self.player.rect.x -= 1
                     hits2 = pygame.sprite.spritecollide(self.player, self.walls, False)
                     self.player.rect.x += 1
-                    if self.player.vel.y != 0 and not self.player.isWallJumping and (hits or hits2):
+                    if self.player.vel.y!=0 and not self.player.isWallJumping and (hits or hits2):
                         self.player.wall_jump()
-                    elif self.player.vel.y == 0 and not self.player.isCrouching and not self.player.isJumping:
+                    elif self.player.vel.y==0 and not self.player.isCrouching and not self.player.isJumping:
                         self.player.jump()
-                    elif not self.player.isCrouching:
+                    else:
                         self.player.double_jump()
 
-                if event.key == pygame.K_LCTRL:
-                    if self.player.vel.y == 0:
+                if event.key==pygame.K_LCTRL:
+                    if self.player.vel.y==0:
                         self.player.pos.y += 16
                         if self.player.moving_right:
                             self.player.image = self.player_crouch_right
@@ -220,20 +236,18 @@ class Game:
                         self.player.isCrouching = True
                         self.player.isHoldingControl = True
                         self.player.rect = self.player.image.get_rect()
-                if event.key == pygame.K_e:
-                    if not self.player.isCrouching:
-                        self.player.r_dash()
-                if event.key == pygame.K_q:
-                    if not self.player.isCrouching:
-                        self.player.l_dash()
-                if event.key == pygame.K_h:
+                if event.key==pygame.K_e:
+                    self.player.r_dash()
+                if event.key==pygame.K_q:
+                    self.player.l_dash()
+                if event.key==pygame.K_h:
                     self.player.attack = True
 
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LCTRL:
+            if event.type==pygame.KEYUP:
+                if event.key==pygame.K_LCTRL:
                     self.player.isHoldingControl = False
 
-            if event.type == pygame.QUIT:
+            if event.type==pygame.QUIT:
                 if self.playing:
                     self.playing = False
                 self.running = False
@@ -243,9 +257,8 @@ class Game:
         self.screen.blit(self.tlo, (0, 0))
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
-        draw_player_health(self.screen, 10, 690, self.player.health / PLAYER_HEALTH)
-        draw_player_lives(self.player.lives)
-        draw_items(self)
+        draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
+        draw_player_lives(self.screen, 50, 10, self.player.lives)
         pygame.display.flip()
 
     def show_start_screen(self):
@@ -258,12 +271,13 @@ class Game:
         while waiting:
             self.clock.tick(FPS)
             for event in pygame.event.get():
-                if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_RETURN:
+                if event.type==pygame.KEYUP:
+                    if event.key==pygame.K_RETURN:
                         waiting = False
-                    if event.key == pygame.K_ESCAPE:
+                    if event.key==pygame.K_ESCAPE:
                         waiting = False
                         self.running = False
+
 
     def show_go_screen(self):
         # game over/continue
@@ -283,14 +297,6 @@ class Game:
                     if event.key == pygame.K_ESCAPE:
                         waiting = False
                         self.running = False
-
-    def draw_text(self, text, size, color, x, y):
-        font = pygame.font.Font(self.font_name, size)
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect()
-        text_rect.midtop = (x, y)
-        self.screen.blit(text_surface, text_rect)
-
 
 g = Game()
 g.show_start_screen()
