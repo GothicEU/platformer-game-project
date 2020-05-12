@@ -30,6 +30,8 @@ MOB_HIT_BOX = pygame.Rect(0, 0, 28, 26)
 
 ZOMBIE_HIT_BOX = pygame.Rect(0, 0, 32, 64)
 
+FLYING_HIT_BOX = pygame.Rect(0, 0, 64, 64)
+
 ITEMS_HIT_BOX = pygame.Rect(0, 0, 32, 32)
 
 ATTACK_HIT_BOX = pygame.Rect(0, 0, 45, 45)
