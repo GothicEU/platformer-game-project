@@ -4,7 +4,7 @@ vec = pygame.math.Vector2
 
 
 def collide_with_walls(sprite, group, direction):
-    if direction=='x':
+    if direction == 'x':
         hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_box)
         if hits:
             if sprite.vel.x > 0:
@@ -13,7 +13,7 @@ def collide_with_walls(sprite, group, direction):
                 sprite.pos.x = hits[0].rect.right + sprite.hit_box.width / 2
             sprite.vel.x = 0
             sprite.hit_box.centerx = sprite.pos.x
-    if direction=='y':
+    if direction == 'y':
         hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_box)
         if hits:
             if sprite.vel.y > 0:
@@ -26,7 +26,7 @@ def collide_with_walls(sprite, group, direction):
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites
+        self.groups = game.all_sprites, game.players
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pygame.Surface((55, 64))
@@ -41,11 +41,6 @@ class Player(pygame.sprite.Sprite):
         self.vel = vec(0, 0)
         self.acc = vec(0, 0)
         self.start_time = 0
-        self.max_exp = 500
-        self.max_health = 100
-        self.health = self.max_health
-        self.exp = 0
-        self.level = 1
         self.lives = 2
         self.timer = 0
         self.attack = False
@@ -73,6 +68,12 @@ class Player(pygame.sprite.Sprite):
         self.isMaczuga = False
         self.isKusza = False
         self.isMiecz = False
+        self.max_exp = 500
+        self.max_health = 100
+        self.health = self.max_health
+        self.exp = 0
+        self.level = 1
+        self.damage_bonus = 0
 
     def update(self):
         if self.attack:
@@ -87,11 +88,11 @@ class Player(pygame.sprite.Sprite):
                     self.moving_right = True
                     self.moving_left = False
                     if not self.attack:
-                        if self.game.player.weapon_select==1:
+                        if self.game.player.weapon_select == 1:
                             self.image = self.game.player_right_maczuga
-                        if self.game.player.weapon_select==0:
+                        if self.game.player.weapon_select == 0:
                             self.image = self.game.player_right_miecz
-                        if not self.game.player.isMiecz and not self.game.player.isMaczuga or self.game.player.weapon_select==2:
+                        if not self.game.player.isMiecz and not self.game.player.isMaczuga or self.game.player.weapon_select == 2:
                             self.image = self.game.player_right
                     self.acc.x = PLAYER_ACC
                 else:
@@ -102,11 +103,11 @@ class Player(pygame.sprite.Sprite):
                     self.moving_right = False
                     self.moving_left = True
                     if not self.attack:
-                        if self.game.player.weapon_select==1:
+                        if self.game.player.weapon_select == 1:
                             self.image = self.game.player_left_maczuga
-                        if self.game.player.weapon_select==0:
+                        if self.game.player.weapon_select == 0:
                             self.image = self.game.player_left_miecz
-                        if not self.game.player.isMiecz and not self.game.player.isMaczuga or self.game.player.weapon_select==2:
+                        if not self.game.player.isMiecz and not self.game.player.isMaczuga or self.game.player.weapon_select == 2:
                             self.image = self.game.player_left
                     self.acc.x = -PLAYER_ACC
                 else:
@@ -117,27 +118,27 @@ class Player(pygame.sprite.Sprite):
 
         if self.attack and self.czas > 1:
             Attack(self.game, self.pos.x, self.pos.y)
-            if self.image==self.game.player_right_maczuga:
+            if self.image == self.game.player_right_maczuga:
                 self.image = self.game.player_attack_right_maczuga
-            if self.image==self.game.player_left_maczuga:
+            if self.image == self.game.player_left_maczuga:
                 self.image = self.game.player_attack_left_maczuga
 
-            if self.image==self.game.player_right_miecz:
+            if self.image == self.game.player_right_miecz:
                 self.image = self.game.player_attack_right_miecz
-            if self.image==self.game.player_left_miecz:
+            if self.image == self.game.player_left_miecz:
                 self.image = self.game.player_attack_left_miecz
 
-        if self.czas > 7 and self.attack:
+        if self.czas > 4 and self.attack:
             self.attack = False
-            if self.game.player.weapon_select==1:
-                if self.image==self.game.player_attack_right_maczuga:
+            if self.game.player.weapon_select == 1:
+                if self.image == self.game.player_attack_right_maczuga:
                     self.image = self.game.player_right_maczuga
-                if self.image==self.game.player_attack_left_maczuga:
+                if self.image == self.game.player_attack_left_maczuga:
                     self.image = self.game.player_left_maczuga
-            if self.game.player.weapon_select==0:
-                if self.image==self.game.player_attack_right_miecz:
+            if self.game.player.weapon_select == 0:
+                if self.image == self.game.player_attack_right_miecz:
                     self.image = self.game.player_right_miecz
-                if self.image==self.game.player_attack_left_miecz:
+                if self.image == self.game.player_attack_left_miecz:
                     self.image = self.game.player_left_miecz
             self.czas = 0
 
@@ -151,11 +152,11 @@ class Player(pygame.sprite.Sprite):
             self.mask = pygame.mask.from_surface(self.game.player_crouch_right)
         hits = pygame.sprite.spritecollide(self, self.game.mobs, False, pygame.sprite.collide_mask)
         if hits:
-            if self.image==self.game.player_attack_right_maczuga or self.image==self.game.player_attack_right_miecz:
+            if self.image == self.game.player_attack_right_maczuga or self.image == self.game.player_attack_right_miecz:
                 self.vel.x -= 20
                 self.vel.y -= 5
                 self.health -= 25
-            if self.image==self.game.player_attack_left_maczuga or self.image==self.game.player_attack_left_miecz:
+            if self.image == self.game.player_attack_left_maczuga or self.image == self.game.player_attack_left_miecz:
                 self.vel.x += 20
                 self.vel.y += 5
                 self.health -= 25
@@ -177,18 +178,18 @@ class Player(pygame.sprite.Sprite):
         self.timer += 1
         hits = pygame.sprite.spritecollide(self, self.game.mobs, False, pygame.sprite.collide_mask)
         if hits and self.timer > 9:
-            if self.image==self.game.player_right or self.image==self.game.player_right_maczuga or self.image==self.game.player_right_miecz:
+            if self.image == self.game.player_right or self.image == self.game.player_right_maczuga or self.image == self.game.player_right_miecz:
                 self.vel.x -= 20
                 self.vel.y -= 5
                 self.health -= 25
-            if self.image==self.game.player_left or self.image==self.game.player_left_maczuga or self.image==self.game.player_left_miecz:
+            if self.image == self.game.player_left or self.image == self.game.player_left_maczuga or self.image == self.game.player_left_miecz:
                 self.vel.x += 20
                 self.vel.y += 5
                 self.health -= 20
-            if self.image==self.game.player_crouch_right:
+            if self.image == self.game.player_crouch_right:
                 self.vel.x -= 20
                 self.health -= 20
-            if self.image==self.game.player_crouch_left:
+            if self.image == self.game.player_crouch_left:
                 self.vel.x += 20
                 self.health -= 25
 
@@ -210,7 +211,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = self.hit_box.center
 
         if self.isDashing:
-            if self.vel.y==0:
+            if self.vel.y == 0:
                 self.isDashing = False
                 self.canMove = True
                 self.start_time = 0
@@ -232,7 +233,12 @@ class Player(pygame.sprite.Sprite):
 
         hits = pygame.sprite.spritecollide(self, self.game.spikes, False, pygame.sprite.collide_mask)
         if hits:
+            self.vel.y -= 5
             self.health -= 1
+
+        hits = pygame.sprite.spritecollide(self, self.game.levels, False)
+        if hits:
+            self.game.change_level()
 
         if self.exp >= self.max_exp:
             self.max_health += 50
@@ -275,7 +281,7 @@ class Player(pygame.sprite.Sprite):
 
     def r_dash(self):
         if self.hasDash:
-            if self.vel.y!=0 and not self.isDashing:
+            if self.vel.y != 0 and not self.isDashing:
                 self.start_time = pygame.time.get_ticks()
                 self.isDashing = True
                 self.canMove = False
@@ -284,7 +290,7 @@ class Player(pygame.sprite.Sprite):
 
     def l_dash(self):
         if self.hasDash:
-            if self.vel.y!=0 and not self.isDashing:
+            if self.vel.y != 0 and not self.isDashing:
                 self.start_time = pygame.time.get_ticks()
                 self.isDashing = True
                 self.canMove = False
@@ -307,7 +313,8 @@ class Camera:
     def update(self, target):
         x = -target.rect.centerx + int(WIDTH / 2)
         y = -target.rect.centery + int(HEIGHT / 2)
-        x = min(0, x)
+        # limit scrolling
+        x = min(0, x)  # left
         y = min(0, y)
         x = max(-(self.width - WIDTH), x)
         y = max(-(self.height - HEIGHT), y)
@@ -333,6 +340,19 @@ class Wall2(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = game.grass_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
+class Wall3(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.walls
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.brick1_image
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
@@ -784,32 +804,6 @@ class Fence(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
 
-class Tabliczka(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
-        self.groups = game.all_sprites
-        pygame.sprite.Sprite.__init__(self, self.groups)
-        self.game = game
-        self.image = game.tabliczka
-        self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
-
-
-class Gates(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
-        self.groups = game.all_sprites
-        pygame.sprite.Sprite.__init__(self, self.groups)
-        self.game = game
-        self.image = game.gates
-        self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
-
-
 class Spikes1(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.spikes
@@ -862,19 +856,6 @@ class Spikes4(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
 
-class Cross(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
-        self.groups = game.all_sprites
-        pygame.sprite.Sprite.__init__(self, self.groups)
-        self.game = game
-        self.image = game.cross_image
-        self.rect = self.image.get_rect()
-        self.x = x
-        self.y = y
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
-
-
 class Lives(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.items
@@ -905,17 +886,17 @@ class Attack(pygame.sprite.Sprite):
         self.hit_box = ATTACK_HIT_BOX.copy()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.hit_box.center = self.rect.center
-        if self.game.player.image==self.game.player_right_maczuga or self.game.player.image==self.game.player_right_miecz:
-            self.rect.x = x + 8
+        if self.game.player.image == self.game.player_right_maczuga or self.game.player.image == self.game.player_right_miecz:
+            self.rect.x = x + 12
             self.rect.y = y - 15
-        elif self.game.player.image==self.game.player_left_maczuga or self.game.player.image==self.game.player_left_miecz:
-            self.rect.x = x - 52
+        elif self.game.player.image == self.game.player_left_maczuga or self.game.player.image == self.game.player_left_miecz:
+            self.rect.x = x - 56
             self.rect.y = y - 15
         self.ile = 0
 
     def update(self):
         self.ile += 1
-        if self.ile > 1:
+        if self.ile > 2:
             self.kill()
             self.ile = 0
 
@@ -925,7 +906,7 @@ class Bolt(pygame.sprite.Sprite):
         self.groups = game.all_sprites, game.bolts
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        if game.player.image==game.player_right or game.player.image==game.player_crouch_right:
+        if game.player.image == game.player_right or game.player.image == game.player_crouch_right:
             self.image = game.bolt
             self.rect = self.image.get_rect()
             self.vel = 20
@@ -963,9 +944,9 @@ class Maczuga(pygame.sprite.Sprite):
             self.game.player.isMaczuga = True
             self.game.player.weapon_select = 1
             if not self.game.player.isCrouching:
-                if self.game.player.image==self.game.player_right or self.game.player.image==self.game.player_right_miecz:
+                if self.game.player.image == self.game.player_right or self.game.player.image == self.game.player_right_miecz:
                     self.game.player.image = self.game.player_right_maczuga
-                if self.game.player.image==self.game.player_left or self.game.player.image==self.game.player_left_miecz:
+                if self.game.player.image == self.game.player_left or self.game.player.image == self.game.player_left_miecz:
                     self.game.player.image = self.game.player_left_maczuga
 
 
@@ -987,9 +968,9 @@ class Miecz(pygame.sprite.Sprite):
             self.game.player.isMiecz = True
             self.game.player.weapon_select = 0
             if not self.game.player.isCrouching:
-                if self.game.player.image==self.game.player_right or self.game.player.image==self.game.player_right_maczuga:
+                if self.game.player.image == self.game.player_right or self.game.player.image == self.game.player_right_maczuga:
                     self.game.player.image = self.game.player_right_miecz
-                if self.game.player.image==self.game.player_left or self.game.player.image==self.game.player_left_maczuga:
+                if self.game.player.image == self.game.player_left or self.game.player.image == self.game.player_left_maczuga:
                     self.game.player.image = self.game.player_left_miecz
 
 
@@ -1010,6 +991,38 @@ class Kusza(pygame.sprite.Sprite):
             self.kill()
             self.game.player.isKusza = True
             self.game.player.weapon_select = 2
+
+
+class Level(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.levels
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.grass_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
+class Checkpoint(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.checkpoints
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.dirt_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        hits = pygame.sprite.spritecollide(self, self.game.players, False)
+        if hits:
+            self.game.player.resp = (self.x * TILESIZE + 16, self.y * TILESIZE)
+
 
 class Potion1(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -1074,3 +1087,43 @@ class Potion3(pygame.sprite.Sprite):
                 self.czas = 0
                 self.game.player.damage_bonus = 0
             self.czas += 1
+
+
+class Tabliczka(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.tabliczka
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
+class Gates(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.gates
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
+class Cross(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.cross_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+

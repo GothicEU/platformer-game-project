@@ -2,6 +2,20 @@ import os
 
 from sprites import *
 
+game_map = 'map1.txt'
+
+
+def change_map():
+    global game_map
+    if game_map == 'map1.txt':
+        game_map = 'map2.txt'
+    elif game_map == 'map2.txt':
+        game_map = 'map3.txt'
+    elif game_map == 'map3.txt':
+        game_map = 'map4.txt'
+    elif game_map == 'map4.txt':
+        game_map = 'map5.txt'
+
 
 def collision_test(rect, tiles):
     hit_list = []
@@ -68,9 +82,14 @@ def draw_player_lives(pct):
         x += 25
 
 
+def change_levels():
+    change_map()
+
+
 class Game:
     def __init__(self):
         # intialize game window, etc
+        global game_map
         pygame.init()
         pygame.mixer.init()
         self.screen = pygame.display.set_mode(WINDOW_SIZE, pygame.FULLSCREEN)
@@ -82,11 +101,18 @@ class Game:
         self.playing = True
 
     def load_data(self):
+        global game_map
         game_folder = os.path.dirname(__file__)
         self.map_data = []
-        with open(os.path.join(game_folder, 'map.txt'), 'rt') as f:
+        with open(os.path.join(game_folder, game_map), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
+        self.potion1 = pygame.image.load('hp.png').convert_alpha()
+        self.potion1 = pygame.transform.scale(self.potion1, (TILESIZE, TILESIZE))
+        self.potion2 = pygame.image.load('exp2.png').convert_alpha()
+        self.potion2 = pygame.transform.scale(self.potion2, (TILESIZE, TILESIZE))
+        self.potion3 = pygame.image.load('ws.png').convert_alpha()
+        self.potion3 = pygame.transform.scale(self.potion3, (TILESIZE, TILESIZE))
         self.bolt = pygame.image.load('bolt.png').convert_alpha()
         self.bolt = pygame.transform.scale(self.bolt, (self.bolt.get_width(), self.bolt.get_height()))
         self.bolt2 = pygame.image.load('bolt2.png').convert_alpha()
@@ -103,6 +129,8 @@ class Game:
         self.tlo = pygame.transform.scale(self.tlo, (WIDTH, HEIGHT))
         self.dirt_image = pygame.image.load('dirt.PNG').convert_alpha()
         self.dirt_image = pygame.transform.scale(self.dirt_image, (TILESIZE, TILESIZE))
+        self.brick1_image = pygame.image.load('brick.PNG').convert_alpha()
+        self.brick1_image = pygame.transform.scale(self.brick1_image, (TILESIZE, TILESIZE))
         self.grass_image = pygame.image.load('grass.PNG').convert_alpha()
         self.grass_image = pygame.transform.scale(self.grass_image, (TILESIZE, TILESIZE))
         self.mob_right = pygame.image.load('mob_right.PNG').convert_alpha()
@@ -195,12 +223,6 @@ class Game:
         self.flying_left = pygame.image.load('flying_left.PNG').convert_alpha()
         self.flying_left = pygame.transform.scale(self.flying_left,
                                                   (self.flying_left.get_width(), self.flying_left.get_height()))
-        self.potion1 = pygame.image.load('hp.png').convert_alpha()
-        self.potion1 = pygame.transform.scale(self.potion1, (TILESIZE, TILESIZE))
-        self.potion2 = pygame.image.load('exp.png').convert_alpha()
-        self.potion2 = pygame.transform.scale(self.potion2, (TILESIZE, TILESIZE))
-        self.potion3 = pygame.image.load('ws.png').convert_alpha()
-        self.potion3 = pygame.transform.scale(self.potion3, (TILESIZE, TILESIZE))
 
     def new(self):
         # start a new game
@@ -211,6 +233,9 @@ class Game:
         self.spikes = pygame.sprite.Group()
         self.weapons = pygame.sprite.Group()
         self.bolts = pygame.sprite.Group()
+        self.levels = pygame.sprite.Group()
+        self.checkpoints = pygame.sprite.Group()
+        self.players = pygame.sprite.Group()
         self.camera = Camera(len(self.map_data[0] * TILESIZE), len(self.map_data) * TILESIZE)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
@@ -218,6 +243,8 @@ class Game:
                     Wall(self, col, row)
                 if tile == "2":
                     Wall2(self, col, row)
+                if tile == "7":
+                    Wall3(self, col, row)
                 if tile == "P":
                     self.player = Player(self, col, row)
                 if tile == 'M':
@@ -258,14 +285,16 @@ class Game:
                     Tabliczka(self, col, row)
                 if tile == "V":
                     Gates(self, col, row)
-                if tile=="E":
+                if tile == "L":
+                    Level(self, col, row)
+                if tile == "X":
+                    Checkpoint(self, col, row)
+                if tile == "E":
                     Potion1(self, col, row)
-                if tile=="I":
+                if tile == "I":
                     Potion2(self, col, row)
-                if tile=="R":
+                if tile == "J":
                     Potion3(self, col, row)
-                if tile == "Y":
-                    Cross(self, col, row)
 
     def run(self):
         # Game Loop
@@ -294,19 +323,18 @@ class Game:
                 if event.key == pygame.K_ESCAPE:
                     self.playing = False
                     self.running = False
-                if event.key==pygame.K_SPACE:
+                if event.key == pygame.K_SPACE:
                     self.player.rect.x -= 1
                     hits = pygame.sprite.spritecollide(self.player, self.walls, False)
                     self.player.rect.x += 2
                     hits2 = pygame.sprite.spritecollide(self.player, self.walls, False)
                     self.player.rect.x -= 1
-                    if self.player.vel.y==0 and not self.player.isJumping and not self.player.isCrouching:
+                    if self.player.vel.y == 0 and not self.player.isJumping and not self.player.isCrouching:
                         self.player.jump()
                     elif self.player.hasWalljump and (hits or hits2):
                         self.player.wall_jump()
                     elif not self.player.isDoubleJumping and self.player.hasSneakers and not self.player.isCrouching:
                         self.player.double_jump()
-
                 if event.key == pygame.K_LCTRL:
                     if self.player.vel.y == 0:
                         self.player.pos.y += 16
@@ -324,12 +352,13 @@ class Game:
                 if event.key == pygame.K_q:
                     if not self.player.isCrouching:
                         self.player.l_dash()
-                if event.key == pygame.K_h and (self.player.isMaczuga or self.player.isMiecz or self.player.isKusza):
-                    if self.player.weapon_select == 0 or self.player.weapon_select == 1:
-                        self.player.attack = True
-                    elif self.player.weapon_select == 2 and not self.player.fired:
-                        self.player.fired = True
-                        Bolt(self)
+                if event.key == pygame.K_h:
+                    if self.player.isMaczuga or self.player.isMiecz or self.player.isKusza:
+                        if self.player.weapon_select == 0 or self.player.weapon_select == 1:
+                            self.player.attack = True
+                        elif self.player.weapon_select == 2 and not self.player.fired:
+                            self.player.fired = True
+                            Bolt(self)
                 if event.key == pygame.K_1 and self.player.isMiecz:
                     self.player.weapon_select = 0
                     if self.player.image == self.player_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right:
@@ -348,6 +377,12 @@ class Game:
                         self.player.image = self.player_right
                     else:
                         self.player.image = self.player_left
+                if event.key == pygame.K_x:
+                    change_map()
+                    self.load_data()
+                    self.new()
+                    self.player.hasSneakers = True
+                    self.player.hasDash = True
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LCTRL:
@@ -416,6 +451,7 @@ class Game:
 
     def show_go_screen(self):
         # game over/continue
+        global game_map
         if not self.running:
             return
         self.screen.blit(self.game_over, (0, 0))
@@ -429,9 +465,17 @@ class Game:
                         waiting = False
                         self.running = True
                         self.playing = True
+                        game_map = 'map1.txt'
+                        self.load_data()
                     if event.key == pygame.K_ESCAPE:
                         waiting = False
                         self.running = False
+
+    def change_level(self):
+        change_map()
+        self.load_data()
+        self.new()
+        self.player.hasDash = True
 
 
 g = Game()
