@@ -29,7 +29,7 @@ def draw_player_icons(game):
 def draw_player_health(surf, x, y, pct):
     if pct < 0:
         pct = 0
-    BAR_LENGTH = 100
+    BAR_LENGTH = 150
     BAR_HEIGHT = 20
     fill = pct * BAR_LENGTH
     outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
@@ -40,6 +40,22 @@ def draw_player_health(surf, x, y, pct):
         col = YELLOW
     else:
         col = RED
+    pygame.draw.rect(surf, GRAY, pygame.Rect(x, y, 150, 20))
+    pygame.draw.rect(surf, col, fill_rect)
+    pygame.draw.rect(surf, GRAY, outline_rect, 2)
+
+
+def draw_player_exp(surf, x, y, pct):
+    if pct < 0:
+        pct = 0
+    BAR_LENGTH = 100
+    BAR_HEIGHT = 15
+    fill = pct * BAR_LENGTH
+    outline_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+    fill_rect = pygame.Rect(x, y, fill, BAR_HEIGHT)
+
+    col = YELLOW
+    pygame.draw.rect(surf, GRAY, pygame.Rect(x, y, 100, 15))
     pygame.draw.rect(surf, col, fill_rect)
     pygame.draw.rect(surf, GRAY, outline_rect, 2)
 
@@ -47,9 +63,9 @@ def draw_player_health(surf, x, y, pct):
 def draw_player_lives(pct):
     x = 0
     while pct > 0:
-        screen.blit(heart, (120 + x, 10))
+        screen.blit(heart, (170 + x, 10))
         pct -= 1
-        x += 40
+        x += 25
 
 
 class Game:
@@ -139,8 +155,14 @@ class Game:
         self.grave_image = pygame.transform.scale(self.grave_image, (24, 32))
         self.grave2_image = pygame.image.load('grave2.PNG').convert_alpha()
         self.grave2_image = pygame.transform.scale(self.grave2_image, (64, 32))
+        self.cross_image = pygame.image.load('cross.PNG').convert_alpha()
+        self.cross_image = pygame.transform.scale(self.cross_image, (self.cross_image.get_width(), self.cross_image.get_height()))
         self.fence_image = pygame.image.load('fence.PNG').convert_alpha()
         self.fence_image = pygame.transform.scale(self.fence_image, (32, 32))
+        self.tabliczka = pygame.image.load('tabliczka.png').convert_alpha()
+        self.tabliczka = pygame.transform.scale(self.tabliczka, (self.tabliczka.get_width(), self.tabliczka.get_height()))
+        self.gates = pygame.image.load('gates.PNG').convert_alpha()
+        self.gates = pygame.transform.scale(self.gates, (self.gates.get_width(), self.gates.get_height()))
         self.heart_image = pygame.image.load('lives.PNG').convert_alpha()
         self.heart_image = pygame.transform.scale(self.heart_image, (TILESIZE, TILESIZE))
         self.start_screen = pygame.image.load('start_screen.PNG').convert_alpha()
@@ -173,6 +195,12 @@ class Game:
         self.flying_left = pygame.image.load('flying_left.PNG').convert_alpha()
         self.flying_left = pygame.transform.scale(self.flying_left,
                                                   (self.flying_left.get_width(), self.flying_left.get_height()))
+        self.potion1 = pygame.image.load('hp.png').convert_alpha()
+        self.potion1 = pygame.transform.scale(self.potion1, (TILESIZE, TILESIZE))
+        self.potion2 = pygame.image.load('exp.png').convert_alpha()
+        self.potion2 = pygame.transform.scale(self.potion2, (TILESIZE, TILESIZE))
+        self.potion3 = pygame.image.load('ws.png').convert_alpha()
+        self.potion3 = pygame.transform.scale(self.potion3, (TILESIZE, TILESIZE))
 
     def new(self):
         # start a new game
@@ -226,6 +254,18 @@ class Game:
                     Kusza(self, col, row)
                 if tile == "J":
                     Mob3(self, col, row)
+                if tile == "T":
+                    Tabliczka(self, col, row)
+                if tile == "V":
+                    Gates(self, col, row)
+                if tile=="E":
+                    Potion1(self, col, row)
+                if tile=="I":
+                    Potion2(self, col, row)
+                if tile=="R":
+                    Potion3(self, col, row)
+                if tile == "Y":
+                    Cross(self, col, row)
 
     def run(self):
         # Game Loop
@@ -254,18 +294,17 @@ class Game:
                 if event.key == pygame.K_ESCAPE:
                     self.playing = False
                     self.running = False
-                if event.key == pygame.K_SPACE:
-                    self.player.rect.x += 1
+                if event.key==pygame.K_SPACE:
+                    self.player.rect.x -= 1
                     hits = pygame.sprite.spritecollide(self.player, self.walls, False)
-                    self.player.rect.x -= 1
-                    self.player.rect.x -= 1
+                    self.player.rect.x += 2
                     hits2 = pygame.sprite.spritecollide(self.player, self.walls, False)
-                    self.player.rect.x += 1
-                    if self.player.vel.y != 0 and not self.player.isWallJumping and (hits or hits2):
-                        self.player.wall_jump()
-                    elif self.player.vel.y == 0 and not self.player.isCrouching and not self.player.isJumping:
+                    self.player.rect.x -= 1
+                    if self.player.vel.y==0 and not self.player.isJumping and not self.player.isCrouching:
                         self.player.jump()
-                    else:
+                    elif self.player.hasWalljump and (hits or hits2):
+                        self.player.wall_jump()
+                    elif not self.player.isDoubleJumping and self.player.hasSneakers and not self.player.isCrouching:
                         self.player.double_jump()
 
                 if event.key == pygame.K_LCTRL:
@@ -285,7 +324,7 @@ class Game:
                 if event.key == pygame.K_q:
                     if not self.player.isCrouching:
                         self.player.l_dash()
-                if event.key == pygame.K_h:
+                if event.key == pygame.K_h and (self.player.isMaczuga or self.player.isMiecz or self.player.isKusza):
                     if self.player.weapon_select == 0 or self.player.weapon_select == 1:
                         self.player.attack = True
                     elif self.player.weapon_select == 2 and not self.player.fired:
@@ -319,12 +358,41 @@ class Game:
                     self.playing = False
                 self.running = False
 
+    def draw_exp(self):
+        myfont = pygame.font.SysFont('Comic Sans MS', 10)
+        text1 = myfont.render(str(self.player.exp), False, WHITE)
+        text2 = myfont.render("/", False, WHITE)
+        text3 = myfont.render(str(self.player.max_exp), False, WHITE)
+        screen.blit(text1, (40, 40))
+        screen.blit(text2, (60, 40))
+        screen.blit(text3, (70, 40))
+
+    def draw_health(self):
+        myfont = pygame.font.SysFont('Comic Sans MS', 15)
+        text1 = myfont.render(str(self.player.health), False, WHITE)
+        text2 = myfont.render("/", False, WHITE)
+        text3 = myfont.render(str(self.player.max_health), False, WHITE)
+        screen.blit(text1, (60, 10))
+        screen.blit(text2, (85, 10))
+        screen.blit(text3, (95, 10))
+
+    def draw_level(self):
+        myfont = pygame.font.SysFont('Comic Sans MS', 15)
+        text1 = myfont.render("Level: ", False, WHITE)
+        text2 = myfont.render(str(self.player.level), False, WHITE)
+        screen.blit(text1, (120, 36))
+        screen.blit(text2, (170, 36))
+
     def draw(self):
         # Game Loop draw
         self.screen.blit(self.tlo, (0, 0))
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
-        draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
+        draw_player_health(self.screen, 10, 10, self.player.health / self.player.max_health)
+        draw_player_exp(self.screen, 10, 40, self.player.exp / self.player.max_exp)
+        self.draw_exp()
+        self.draw_health()
+        self.draw_level()
         draw_player_lives(self.player.lives)
         draw_player_icons(self)
         pygame.display.flip()
