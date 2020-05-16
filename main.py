@@ -107,6 +107,8 @@ class Game:
         with open(os.path.join(game_folder, game_map), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
+        self.level = pygame.image.load('level.png').convert_alpha()
+        self.level = pygame.transform.scale(self.level, (TILESIZE, TILESIZE))
         self.potion1 = pygame.image.load('hp.png').convert_alpha()
         self.potion1 = pygame.transform.scale(self.potion1, (TILESIZE, TILESIZE))
         self.potion2 = pygame.image.load('exp2.png').convert_alpha()
@@ -245,24 +247,52 @@ class Game:
                     Wall2(self, col, row)
                 if tile == "7":
                     Wall3(self, col, row)
-                if tile == "P":
-                    self.player = Player(self, col, row)
-                if tile == 'M':
-                    Mob(self, col, row)
-                if tile == 'Z':
-                    Mob2(self, col, row)
                 if tile == "S":
                     Sneakers(self, col, row)
                 if tile == "W":
                     Walljump(self, col, row)
                 if tile == "D":
                     Dash(self, col, row)
-                if tile == "G":
-                    Grave(self, col, row)
                 if tile == "H":
                     Lives(self, col, row)
+                if tile == "K":
+                    Maczuga(self, col, row)
+                if tile == "B":
+                    Miecz(self, col, row)
+                if tile == "A":
+                    Kusza(self, col, row)
+                if tile == "T":
+                    Tabliczka(self, col, row)
+                if tile == "L":
+                    Level(self, col, row)
+                if tile == "X":
+                    Checkpoint(self, col, row)
+                if tile == "E":
+                    Potion1(self, col, row)
+                if tile == "I":
+                    Potion2(self, col, row)
+                if tile == "N":
+                    Potion3(self, col, row)
+                if tile == "Y":
+                    Cross(self, col, row)
+                if tile == "G":
+                    Grave(self, col, row)
                 if tile == "C":
                     Grave2(self, col, row)
+        for row, tiles in enumerate(self.map_data):
+            for col, tile in enumerate(tiles):
+                if tile == "P":
+                    self.player = Player(self, col, row)
+        for row, tiles in enumerate(self.map_data):
+            for col, tile in enumerate(tiles):
+                if tile == 'M':
+                    Mob(self, col, row)
+                if tile == 'Z':
+                    Mob2(self, col, row)
+                if tile == "J":
+                    Mob3(self, col, row)
+                if tile == "V":
+                    Gates(self, col, row)
                 if tile == "F":
                     Fence(self, col, row)
                 if tile == "3":
@@ -273,28 +303,7 @@ class Game:
                     Spikes3(self, col, row)
                 if tile == "6":
                     Spikes4(self, col, row)
-                if tile == "K":
-                    Maczuga(self, col, row)
-                if tile == "B":
-                    Miecz(self, col, row)
-                if tile == "A":
-                    Kusza(self, col, row)
-                if tile == "J":
-                    Mob3(self, col, row)
-                if tile == "T":
-                    Tabliczka(self, col, row)
-                if tile == "V":
-                    Gates(self, col, row)
-                if tile == "L":
-                    Level(self, col, row)
-                if tile == "X":
-                    Checkpoint(self, col, row)
-                if tile == "E":
-                    Potion1(self, col, row)
-                if tile == "I":
-                    Potion2(self, col, row)
-                if tile == "J":
-                    Potion3(self, col, row)
+
 
     def run(self):
         # Game Loop
