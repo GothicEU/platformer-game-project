@@ -368,6 +368,19 @@ class Wall3(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
 
+class Wall4(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.dirt2_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+
 class Mob(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.mobs
@@ -718,6 +731,114 @@ class Mob3(pygame.sprite.Sprite):
                 self.vel.y = -1
 
 
+class Mob4(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.mobs
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pygame.Surface((32, 48))
+        self.image.blit(self.game.ghost_right, (0, 0))
+        self.image.set_colorkey((0, 0, 0))
+        self.rect = self.image.get_rect()
+        self.hit_box = GHOST_HIT_BOX.copy()
+        self.rect.center = (WIDTH / 2, HEIGHT / 2)
+        self.hit_box.center = self.rect.center
+        self.health = 100
+        self.path = [x * TILESIZE - 150, x * TILESIZE + 150]
+        self.pos = vec(x, y) * TILESIZE
+        self.start_y = y * TILESIZE
+        self.czySee = False
+        self.accel = GHOST_ACC
+        self.change = 1
+        self.dis_x = 0
+        self.dis_y = 0
+        self.min_dis_x = 250
+        self.min_dis_y = 250
+        self.vel = vec(0, 0)
+        self.acc = vec(0, 0)
+
+    def update(self):
+        self.acc = vec(0, 0)
+
+        hits = pygame.sprite.spritecollide(self, self.game.bolts, True)
+        if hits:
+            if self.game.player.image == self.game.player_right or self.game.player.image == self.game.player_crouch_right:
+                self.vel.x = 10
+                self.health -= (7 + self.game.player.damage_bonus)
+            if self.game.player.image == self.game.player_left or self.game.player.image == self.game.player_crouch_left:
+                self.vel.x = -10
+                self.health -= (7 + self.game.player.damage_bonus)
+
+        hits = pygame.sprite.spritecollide(self, self.game.weapons, False)
+        if hits:
+            if self.game.player.image == self.game.player_attack_right_maczuga:
+                self.vel.x = 25
+                self.health -= (10 + self.game.player.damage_bonus)
+            if self.game.player.image == self.game.player_attack_right_miecz:
+                self.vel.x = 15
+                self.health -= (15 + self.game.player.damage_bonus)
+            if self.game.player.image == self.game.player_attack_left_maczuga:
+                self.vel.x = -25
+                self.health -= (10 + self.game.player.damage_bonus)
+            if self.game.player.image == self.game.player_attack_left_miecz:
+                self.vel.x = -15
+                self.health -= (15 + self.game.player.damage_bonus)
+
+        if self.health <= 0:
+            self.game.player.exp += 150
+            self.kill()
+
+        if not self.czySee:
+            if self.pos.x > self.path[1]:
+                self.image = self.game.ghost_left
+                self.change = -1
+
+            if self.pos.x < self.path[0]:
+                self.image = self.game.ghost_right
+                self.change = 1
+
+        self.acc.x = self.accel * self.change
+        self.acc.x += self.vel.x * PLAYER_FRICTION
+        self.vel += self.acc
+        self.pos += self.vel + 0.5 * self.acc
+
+        self.rect.center = self.pos
+
+        self.dis_x = self.rect.x - self.game.player.rect.x
+        self.dis_y = self.rect.y - self.game.player.rect.y
+
+        if self.min_dis_x > self.dis_x > -self.min_dis_x and self.min_dis_y > self.dis_y > -self.min_dis_y:
+            if self.dis_x <= 0:
+                self.accel = 0.6
+                if self.image == self.game.ghost_left:
+                    self.image = self.game.ghost_right
+                self.czySee = True
+                self.change = 1
+                if self.game.player.pos.y > self.pos.y:
+                    self.vel.y = 1
+                if self.game.player.pos.y < self.pos.y:
+                    self.vel.y = -1
+                if self.game.player.pos.y == self.pos.y:
+                    self.vel.y = 0
+
+            elif self.dis_x > 0:
+                self.accel = 0.6
+                if self.image == self.game.ghost_right:
+                    self.image = self.game.ghost_left
+                self.czySee = True
+                self.change = -1
+                if self.game.player.pos.y > self.pos.y:
+                    self.vel.y = 1
+                if self.game.player.pos.y < self.pos.y:
+                    self.vel.y = -1
+                if self.game.player.pos.y == self.pos.y:
+                    self.vel.y = 0
+        else:
+            self.czySee = False
+            self.accel = GHOST_ACC
+            self.vel.y = 0
+
+
 class Sneakers(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.items
@@ -1019,7 +1140,7 @@ class Checkpoint(pygame.sprite.Sprite):
         self.groups = game.all_sprites, game.checkpoints
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = game.dirt_image
+        self.image = game.checkpoint
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y

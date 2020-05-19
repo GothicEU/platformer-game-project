@@ -107,6 +107,17 @@ class Game:
         with open(os.path.join(game_folder, game_map), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
+        self.ghost_left = pygame.image.load('ghost_left.PNG').convert_alpha()
+        self.ghost_left = pygame.transform.scale(self.ghost_left,
+                                                 (self.ghost_left.get_width(), self.ghost_left.get_height()))
+        self.ghost_right = pygame.image.load('ghost_right.PNG').convert_alpha()
+        self.ghost_right = pygame.transform.scale(self.ghost_right,
+                                                  (self.ghost_right.get_width(), self.ghost_right.get_height()))
+        self.dirt2_image = pygame.image.load('dirt2.PNG').convert_alpha()
+        self.dirt2_image = pygame.transform.scale(self.dirt2_image, (self.dirt2_image.get_width(), self.dirt2_image.get_height()))
+        self.checkpoint = pygame.image.load('checkpoint.png').convert_alpha()
+        self.checkpoint = pygame.transform.scale(self.checkpoint,
+                                                 (self.checkpoint.get_width(), self.checkpoint.get_height()))
         self.level = pygame.image.load('level.png').convert_alpha()
         self.level = pygame.transform.scale(self.level, (TILESIZE, TILESIZE))
         self.potion1 = pygame.image.load('hp.png').convert_alpha()
@@ -186,11 +197,13 @@ class Game:
         self.grave2_image = pygame.image.load('grave2.PNG').convert_alpha()
         self.grave2_image = pygame.transform.scale(self.grave2_image, (64, 32))
         self.cross_image = pygame.image.load('cross.PNG').convert_alpha()
-        self.cross_image = pygame.transform.scale(self.cross_image, (self.cross_image.get_width(), self.cross_image.get_height()))
+        self.cross_image = pygame.transform.scale(self.cross_image,
+                                                  (self.cross_image.get_width(), self.cross_image.get_height()))
         self.fence_image = pygame.image.load('fence.PNG').convert_alpha()
         self.fence_image = pygame.transform.scale(self.fence_image, (32, 32))
         self.tabliczka = pygame.image.load('tabliczka.png').convert_alpha()
-        self.tabliczka = pygame.transform.scale(self.tabliczka, (self.tabliczka.get_width(), self.tabliczka.get_height()))
+        self.tabliczka = pygame.transform.scale(self.tabliczka,
+                                                (self.tabliczka.get_width(), self.tabliczka.get_height()))
         self.gates = pygame.image.load('gates.PNG').convert_alpha()
         self.gates = pygame.transform.scale(self.gates, (self.gates.get_width(), self.gates.get_height()))
         self.heart_image = pygame.image.load('lives.PNG').convert_alpha()
@@ -239,6 +252,10 @@ class Game:
         self.checkpoints = pygame.sprite.Group()
         self.players = pygame.sprite.Group()
         self.camera = Camera(len(self.map_data[0] * TILESIZE), len(self.map_data) * TILESIZE)
+        for row, tiles in enumerate(self.map_data):
+            for col, tile in enumerate(tiles):
+                if tile == "8":
+                    Wall4(self, col, row)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == "1":
@@ -291,6 +308,10 @@ class Game:
                     Mob2(self, col, row)
                 if tile == "J":
                     Mob3(self, col, row)
+                if tile == "Q":
+                    Mob4(self, col, row)
+        for row, tiles in enumerate(self.map_data):
+            for col, tile in enumerate(tiles):
                 if tile == "V":
                     Gates(self, col, row)
                 if tile == "F":
@@ -303,7 +324,6 @@ class Game:
                     Spikes3(self, col, row)
                 if tile == "6":
                     Spikes4(self, col, row)
-
 
     def run(self):
         # Game Loop
@@ -370,19 +390,19 @@ class Game:
                             Bolt(self)
                 if event.key == pygame.K_1 and self.player.isMiecz:
                     self.player.weapon_select = 0
-                    if self.player.image == self.player_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right:
+                    if self.player.image == self.player_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right or self.player_attack_right_miecz or self.player_attack_right_maczuga:
                         self.player.image = self.player_right_miecz
                     else:
                         self.player.image = self.player_left_miecz
                 if event.key == pygame.K_2 and self.player.isMaczuga:
                     self.player.weapon_select = 1
-                    if self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz or self.player.image == self.player_right:
+                    if self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz or self.player.image == self.player_right or self.player_attack_right_miecz or self.player_attack_right_maczuga:
                         self.player.image = self.player_right_maczuga
                     else:
                         self.player.image = self.player_left_maczuga
                 if event.key == pygame.K_3 and self.player.isKusza:
                     self.player.weapon_select = 2
-                    if self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz or self.player.image == self.player_right:
+                    if self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz or self.player.image == self.player_right or self.player_attack_right_miecz or self.player_attack_right_maczuga:
                         self.player.image = self.player_right
                     else:
                         self.player.image = self.player_left
@@ -481,10 +501,24 @@ class Game:
                         self.running = False
 
     def change_level(self):
+        self.temp_exp = self.player.exp
+        self.temp_level = self.player.level
+        self.temp_weapon = self.player.weapon_select
+        self.temp_lives = self.player.lives
         change_map()
         self.load_data()
         self.new()
-        self.player.hasDash = True
+        self.player.level = self.temp_level
+        self.player.exp = self.temp_exp
+        self.player.max_health = 100 + 50 * (self.player.level - 1)
+        self.player.health = self.player.max_health
+        self.player.max_exp = 500 + 100 * (self.player.level - 1)
+        self.player.weapon_select = self.temp_weapon
+        self.player.lives = self.temp_lives
+        if game_map == "map2.txt":
+            self.player.isKusza = True
+            self.player.isMaczuga = True
+            self.player.hasSneakers = True
 
 
 g = Game()
