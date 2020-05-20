@@ -329,10 +329,10 @@ class Game:
         # Game Loop
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000.0
-            self.clock.tick(FPS)
             self.event()
             self.update()
             self.draw()
+            self.clock.tick(FPS)
 
     def update(self):
         # Game Loop update
