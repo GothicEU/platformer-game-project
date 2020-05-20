@@ -333,7 +333,6 @@ class Game:
             self.event()
             self.update()
             self.draw()
-            self.clock.tick(FPS)
 
     def update(self):
         # Game Loop update
