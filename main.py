@@ -151,6 +151,10 @@ class Game:
         self.pochodnia_image = pygame.image.load('pochodnia.PNG').convert_alpha()
         self.pochodnia_image = pygame.transform.scale(self.pochodnia_image, (32, 64))
         self.grass_image = pygame.image.load('grass.PNG').convert_alpha()
+        self.door1 = pygame.image.load('door1.PNG').convert_alpha()
+        self.door1 = pygame.transform.scale(self.door1, (9, 64))
+        self.door2 = pygame.image.load('door2.PNG').convert_alpha()
+        self.door2 = pygame.transform.scale(self.door2, (32, 64))
         self.grass_image = pygame.transform.scale(self.grass_image, (TILESIZE, TILESIZE))
         self.mob_right = pygame.image.load('mob_right.PNG').convert_alpha()
         self.mob_right = pygame.transform.scale(self.mob_right,
@@ -306,6 +310,8 @@ class Game:
                     Grave(self, col, row)
                 if tile == "C":
                     Grave2(self, col, row)
+                if tile == "O":
+                    Door(self, col, row)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == "P":
