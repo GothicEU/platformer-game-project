@@ -2,7 +2,7 @@ import os
 
 from sprites import *
 
-game_map = 'map1.txt'
+game_map = 'map2.txt'
 
 
 def change_map():
@@ -126,6 +126,8 @@ class Game:
         self.potion2 = pygame.transform.scale(self.potion2, (TILESIZE, TILESIZE))
         self.potion3 = pygame.image.load('ws.png').convert_alpha()
         self.potion3 = pygame.transform.scale(self.potion3, (TILESIZE, TILESIZE))
+        self.key = pygame.image.load('key.PNG').convert_alpha()
+        self.key = pygame.transform.scale(self.key, (TILESIZE, TILESIZE))
         self.bolt = pygame.image.load('bolt.png').convert_alpha()
         self.bolt = pygame.transform.scale(self.bolt, (self.bolt.get_width(), self.bolt.get_height()))
         self.bolt2 = pygame.image.load('bolt2.png').convert_alpha()
@@ -140,10 +142,14 @@ class Game:
         self.spike4 = pygame.transform.scale(self.spike4, (self.spike3.get_width(), self.spike3.get_height()))
         self.tlo = pygame.image.load('tlo2.PNG').convert_alpha()
         self.tlo = pygame.transform.scale(self.tlo, (WIDTH, HEIGHT))
+        self.tlo2 = pygame.image.load('test1.PNG').convert_alpha()
+        self.tlo2 = pygame.transform.scale(self.tlo2, (WIDTH, HEIGHT))
         self.dirt_image = pygame.image.load('dirt.PNG').convert_alpha()
         self.dirt_image = pygame.transform.scale(self.dirt_image, (TILESIZE, TILESIZE))
         self.brick1_image = pygame.image.load('brick.PNG').convert_alpha()
         self.brick1_image = pygame.transform.scale(self.brick1_image, (TILESIZE, TILESIZE))
+        self.pochodnia_image = pygame.image.load('pochodnia.PNG').convert_alpha()
+        self.pochodnia_image = pygame.transform.scale(self.pochodnia_image, (32, 64))
         self.grass_image = pygame.image.load('grass.PNG').convert_alpha()
         self.grass_image = pygame.transform.scale(self.grass_image, (TILESIZE, TILESIZE))
         self.mob_right = pygame.image.load('mob_right.PNG').convert_alpha()
@@ -264,6 +270,8 @@ class Game:
                     Wall2(self, col, row)
                 if tile == "7":
                     Wall3(self, col, row)
+                if tile == "9":
+                    Pochodnia(self, col, row)
                 if tile == "S":
                     Sneakers(self, col, row)
                 if tile == "W":
@@ -290,6 +298,8 @@ class Game:
                     Potion2(self, col, row)
                 if tile == "N":
                     Potion3(self, col, row)
+                if tile == "U":
+                    Key(self, col, row)
                 if tile == "Y":
                     Cross(self, col, row)
                 if tile == "G":
@@ -308,12 +318,14 @@ class Game:
                     Mob2(self, col, row)
                 if tile == "J":
                     Mob3(self, col, row)
-                if tile == "Q":
-                    Mob4(self, col, row)
+                if tile == "R":
+                    Wall5(self, col, row)
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
                 if tile == "V":
                     Gates(self, col, row)
+                if tile == "Q":
+                    Mob4(self, col, row)
                 if tile == "F":
                     Fence(self, col, row)
                 if tile == "3":
@@ -324,6 +336,7 @@ class Game:
                     Spikes3(self, col, row)
                 if tile == "6":
                     Spikes4(self, col, row)
+
 
     def run(self):
         # Game Loop
@@ -447,8 +460,10 @@ class Game:
         screen.blit(text2, (170, 36))
 
     def draw(self):
-        # Game Loop draw
-        self.screen.blit(self.tlo, (0, 0))
+        if game_map == 'map1.txt' or game_map == 'map2.txt':
+            self.screen.blit(self.tlo, (0, 0))
+        elif game_map == 'map3.txt':
+            self.screen.blit(self.tlo2, (0, 0))
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
         draw_player_health(self.screen, 10, 10, self.player.health / self.player.max_health)
@@ -458,7 +473,7 @@ class Game:
         self.draw_level()
         draw_player_lives(self.player.lives)
         draw_player_icons(self)
-        pygame.display.flip()
+        pygame.display.update((0, 0, WIDTH, HEIGHT))
 
     def show_start_screen(self):
         # game splash/start screen
@@ -514,10 +529,14 @@ class Game:
         self.player.max_exp = 500 + 100 * (self.player.level - 1)
         self.player.weapon_select = self.temp_weapon
         self.player.lives = self.temp_lives
-        if game_map == "map2.txt":
+        if game_map == "map2.txt" or game_map == "map3.txt":
             self.player.isKusza = True
             self.player.isMaczuga = True
             self.player.hasSneakers = True
+
+        if game_map == "map3.txt":
+            self.player.hasWalljump = True
+            self.player.hasDash = True
 
 
 g = Game()

@@ -19,7 +19,7 @@ GHOST_ACC = 0.5
 
 WINDOW_SIZE = (1280, 720)
 screen = pygame.display.set_mode(WINDOW_SIZE, pygame.FULLSCREEN)
-display = pygame.Surface((640, 360))
+display = pygame.Surface((1280, 720))
 
 TILESIZE = 32
 
@@ -32,9 +32,9 @@ MOB_HIT_BOX = pygame.Rect(0, 0, 28, 26)
 
 ZOMBIE_HIT_BOX = pygame.Rect(0, 0, 32, 64)
 
-GHOST_HIT_BOX = pygame.Rect(0, 0, 32, 48)
-
 FLYING_HIT_BOX = pygame.Rect(0, 0, 64, 64)
+
+GHOST_HIT_BOX = pygame.Rect(0, 0, 32, 48)
 
 ITEMS_HIT_BOX = pygame.Rect(0, 0, 32, 32)
 
@@ -49,3 +49,4 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (55, 208, 71)
 YELLOW = (216, 222, 52)
+
