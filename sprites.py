@@ -4,7 +4,7 @@ vec = pygame.math.Vector2
 
 
 def collide_with_walls(sprite, group, direction):
-    if direction=='x':
+    if direction == 'x':
         hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_box)
         if hits:
             if sprite.vel.x > 0:
@@ -13,7 +13,7 @@ def collide_with_walls(sprite, group, direction):
                 sprite.pos.x = hits[0].rect.right + sprite.hit_box.width / 2
             sprite.vel.x = 0
             sprite.hit_box.centerx = sprite.pos.x
-    if direction=='y':
+    if direction == 'y':
         hits = pygame.sprite.spritecollide(sprite, group, False, collide_hit_box)
         if hits:
             if sprite.vel.y > 0:
@@ -88,9 +88,9 @@ class Player(pygame.sprite.Sprite):
                     self.moving_right = True
                     self.moving_left = False
                     if not self.attack:
-                        if self.game.player.weapon_select==1:
+                        if self.game.player.weapon_select == 1:
                             self.image = self.game.player_right_maczuga
-                        if self.game.player.weapon_select==0:
+                        if self.game.player.weapon_select == 0:
                             self.image = self.game.player_right_miecz
                         if not self.game.player.isMiecz and not self.game.player.isMaczuga or self.game.player.weapon_select==2:
                             self.image = self.game.player_right
@@ -150,6 +150,7 @@ class Player(pygame.sprite.Sprite):
             self.mask = pygame.mask.from_surface(self.game.player_right)
         else:
             self.mask = pygame.mask.from_surface(self.game.player_crouch_right)
+
         hits = pygame.sprite.spritecollide(self, self.game.mobs, False, pygame.sprite.collide_mask)
         if hits:
             if self.image==self.game.player_attack_right_maczuga or self.image==self.game.player_attack_right_miecz:
@@ -221,7 +222,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = self.hit_box.center
 
         if self.isDashing:
-            if self.vel.y==0:
+            if self.vel.y == 0:
                 self.isDashing = False
                 self.canMove = True
                 self.start_time = 0
@@ -234,9 +235,16 @@ class Player(pygame.sprite.Sprite):
                 self.timer = 0
 
         if self.isJumping or self.isDoubleJumping:
-            if self.vel.y == 0:
-                self.isJumping = False
-                self.isDoubleJumping = False
+            self.rect.y += 1
+            hits = pygame.sprite.spritecollide(self, self.game.walls, False)
+            self.rect.y -= 1
+            if hits:
+                self.rect.y += 1
+                hits = pygame.sprite.spritecollide(self, self.game.walls, False, pygame.sprite.collide_mask)
+                self.rect.y -= 1
+                if hits:
+                    self.isJumping = False
+                    self.isDoubleJumping = False
 
         hits = pygame.sprite.spritecollide(self, self.game.spikes, False, pygame.sprite.collide_mask)
         if hits:

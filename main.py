@@ -2,7 +2,7 @@ import os
 
 from sprites import *
 
-game_map = 'map2.txt'
+game_map = 'map3.txt'
 
 
 def change_map():
@@ -541,6 +541,9 @@ class Game:
             self.player.hasSneakers = True
 
         if game_map == "map3.txt":
+            self.player.isKusza = True
+            self.player.isMaczuga = True
+            self.player.hasSneakers = True
             self.player.hasWalljump = True
             self.player.hasDash = True
 
