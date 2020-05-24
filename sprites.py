@@ -483,7 +483,7 @@ class Mob(pygame.sprite.Sprite):
                 self.health -= (15 + self.game.player.damage_bonus)
             self.timer = 0
 
-        if self.health <= 0:
+        if self.health <= 0 or self.pos.y >= len(self.game.map_data) * TILESIZE:
             self.game.player.exp += 100
             self.kill()
 
@@ -514,9 +514,6 @@ class Mob(pygame.sprite.Sprite):
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_box.center
 
-        if self.pos.y >= len(self.game.map_data) * TILESIZE:
-            self.kill()
-
         self.rect.x += 1
         hits = pygame.sprite.spritecollide(self, self.game.walls, False)
         self.rect.x -= 2
@@ -530,6 +527,7 @@ class Mob(pygame.sprite.Sprite):
             else:
                 self.image = self.game.mob_left
             self.change *= -1
+
 
 
 class Mob2(pygame.sprite.Sprite):
@@ -567,7 +565,8 @@ class Mob2(pygame.sprite.Sprite):
     def update(self):
         self.acc = vec(0, PLAYER_GRAV)
 
-        if self.pos.y >= len(self.game.map_data) * TILESIZE:
+        if self.health <= 0 or self.pos.y >= len(self.game.map_data) * TILESIZE:
+            self.game.player.exp += 150
             self.kill()
 
         hits = pygame.sprite.spritecollide(self, self.game.bolts, True)
@@ -598,10 +597,6 @@ class Mob2(pygame.sprite.Sprite):
             self.czySee = True
             self.timer1 = 0
 
-        if self.health <= 0:
-            self.game.player.exp += 150
-            self.kill()
-
         if not self.czySee and self.ifhit == False:
             if self.pos.x > self.path[1]:
                 self.image = self.game.zombie_left
@@ -623,9 +618,6 @@ class Mob2(pygame.sprite.Sprite):
         self.hit_box.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_box.center
-
-        if self.pos.y >= len(self.game.map_data) * TILESIZE:
-            self.kill()
 
         self.dis_x = self.rect.x - self.game.player.rect.x
         self.dis_y = self.rect.y - self.game.player.rect.y
