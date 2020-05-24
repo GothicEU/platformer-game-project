@@ -2,7 +2,7 @@ import os
 
 from sprites import *
 
-game_map = 'map3.txt'
+game_map = 'map1.txt'
 
 
 def change_map():
@@ -114,7 +114,8 @@ class Game:
         self.ghost_right = pygame.transform.scale(self.ghost_right,
                                                   (self.ghost_right.get_width(), self.ghost_right.get_height()))
         self.dirt2_image = pygame.image.load('dirt2.PNG').convert_alpha()
-        self.dirt2_image = pygame.transform.scale(self.dirt2_image, (self.dirt2_image.get_width(), self.dirt2_image.get_height()))
+        self.dirt2_image = pygame.transform.scale(self.dirt2_image,
+                                                  (self.dirt2_image.get_width(), self.dirt2_image.get_height()))
         self.checkpoint = pygame.image.load('checkpoint.png').convert_alpha()
         self.checkpoint = pygame.transform.scale(self.checkpoint,
                                                  (self.checkpoint.get_width(), self.checkpoint.get_height()))
@@ -195,7 +196,6 @@ class Game:
         self.player_attack_right_maczuga = pygame.transform.scale(self.player_attack_right_maczuga, (55, 64))
         self.player_attack_left_maczuga = pygame.image.load('left_attack_maczuga.PNG').convert_alpha()
         self.player_attack_left_maczuga = pygame.transform.scale(self.player_attack_left_maczuga, (55, 64))
-        self.player_image = self.player_right
         self.sneakers_image = pygame.image.load('sneakers.png').convert_alpha()
         self.sneakers_image = pygame.transform.scale(self.sneakers_image, (TILESIZE, TILESIZE))
         self.walljump_image = pygame.image.load('walljump.png').convert_alpha()
@@ -248,10 +248,22 @@ class Game:
         self.flying_left = pygame.image.load('flying_left.PNG').convert_alpha()
         self.flying_left = pygame.transform.scale(self.flying_left,
                                                   (self.flying_left.get_width(), self.flying_left.get_height()))
+        self.cannon_right = pygame.image.load('cannon_right.PNG').convert_alpha()
+        self.cannon_right = pygame.transform.scale(self.cannon_right,
+                                                   (self.cannon_right.get_width(), self.cannon_right.get_height()))
+        self.cannon_left = pygame.image.load('cannon_left.PNG').convert_alpha()
+        self.cannon_left = pygame.transform.scale(self.cannon_left,
+                                                  (self.cannon_left.get_width(), self.cannon_left.get_height()))
+        self.cannon_ball = pygame.image.load('cannon_ball.PNG').convert_alpha()
+        self.cannon_ball = pygame.transform.scale(self.cannon_ball, (14, 14))
+        self.grave3_image = pygame.image.load('grave3.PNG').convert_alpha()
+        self.grave3_image = pygame.transform.scale(self.grave3_image, (64, 32))
+        self.player_image = self.player_right
 
     def new(self):
         # start a new game
         self.all_sprites = pygame.sprite.Group()
+        self.cannon_balls = pygame.sprite.Group()
         self.walls = pygame.sprite.Group()
         self.mobs = pygame.sprite.Group()
         self.items = pygame.sprite.Group()
@@ -310,6 +322,8 @@ class Game:
                     Grave(self, col, row)
                 if tile == "C":
                     Grave2(self, col, row)
+                if tile == "?":
+                    Grave3(self, col, row)
                 if tile == "O":
                     Door(self, col, row)
         for row, tiles in enumerate(self.map_data):
@@ -324,6 +338,10 @@ class Game:
                     Mob2(self, col, row)
                 if tile == "J":
                     Mob3(self, col, row)
+                if tile == "-":
+                    Cannon_right(self, col, row)
+                if tile == "+":
+                    Cannon_left(self, col, row)
                 if tile == "R":
                     Wall5(self, col, row)
         for row, tiles in enumerate(self.map_data):
@@ -342,7 +360,6 @@ class Game:
                     Spikes3(self, col, row)
                 if tile == "6":
                     Spikes4(self, col, row)
-
 
     def run(self):
         # Game Loop
@@ -385,7 +402,7 @@ class Game:
                 if event.key == pygame.K_LCTRL:
                     if self.player.vel.y == 0:
                         self.player.pos.y += 16
-                        if self.player.moving_right:
+                        if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                             self.player.image = self.player_crouch_right
                         else:
                             self.player.image = self.player_crouch_left
@@ -408,19 +425,19 @@ class Game:
                             Bolt(self)
                 if event.key == pygame.K_1 and self.player.isMiecz:
                     self.player.weapon_select = 0
-                    if self.player.image == self.player_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right or self.player_attack_right_miecz or self.player_attack_right_maczuga:
+                    if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right_miecz
                     else:
                         self.player.image = self.player_left_miecz
                 if event.key == pygame.K_2 and self.player.isMaczuga:
                     self.player.weapon_select = 1
-                    if self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz or self.player.image == self.player_right or self.player_attack_right_miecz or self.player_attack_right_maczuga:
+                    if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right_maczuga
                     else:
                         self.player.image = self.player_left_maczuga
                 if event.key == pygame.K_3 and self.player.isKusza:
                     self.player.weapon_select = 2
-                    if self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz or self.player.image == self.player_right or self.player_attack_right_miecz or self.player_attack_right_maczuga:
+                    if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right
                     else:
                         self.player.image = self.player_left
@@ -466,9 +483,9 @@ class Game:
         screen.blit(text2, (170, 36))
 
     def draw(self):
-        if game_map == 'map1.txt' or game_map == 'map2.txt':
+        if game_map == 'map1.txt' or game_map == 'map2.txt' or game_map == 'map5.txt':
             self.screen.blit(self.tlo, (0, 0))
-        elif game_map == 'map3.txt':
+        elif game_map == 'map3.txt' or game_map == 'map4.txt':
             self.screen.blit(self.tlo2, (0, 0))
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
@@ -535,7 +552,7 @@ class Game:
         self.player.max_exp = 500 + 100 * (self.player.level - 1)
         self.player.weapon_select = self.temp_weapon
         self.player.lives = self.temp_lives
-        if game_map == "map2.txt" or game_map == "map3.txt":
+        if game_map == "map2.txt":
             self.player.isKusza = True
             self.player.isMaczuga = True
             self.player.hasSneakers = True
@@ -546,6 +563,20 @@ class Game:
             self.player.hasSneakers = True
             self.player.hasWalljump = True
             self.player.hasDash = True
+
+        if game_map == "map4.txt" or game_map == "map5.txt":
+            self.player.isMiecz = True
+            self.player.isKusza = True
+            self.player.isMaczuga = True
+            self.player.hasSneakers = True
+            self.player.hasWalljump = True
+            self.player.hasDash = True
+        if self.player.weapon_select == 0:
+            self.player.image = self.player_right_miecz
+        elif self.player.weapon_select == 1:
+            self.player.image = self.player_right_maczuga
+        elif self.player.weapon_select == 2:
+            self.player.image = self.player_right
 
 
 g = Game()
