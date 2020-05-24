@@ -156,11 +156,11 @@ class Player(pygame.sprite.Sprite):
             if self.image == self.game.player_attack_right_maczuga or self.image == self.game.player_attack_right_miecz:
                 self.vel.x -= 20
                 self.vel.y -= 5
-                self.health -= 25
+                self.health -= 20
             if self.image == self.game.player_attack_left_maczuga or self.image == self.game.player_attack_left_miecz:
                 self.vel.x += 20
                 self.vel.y += 5
-                self.health -= 25
+                self.health -= 20
 
         if self.isCrouching:
             self.rect.y -= 1
@@ -192,7 +192,7 @@ class Player(pygame.sprite.Sprite):
             if self.image == self.game.player_right or self.image == self.game.player_right_maczuga or self.image == self.game.player_right_miecz:
                 self.vel.x -= 20
                 self.vel.y -= 5
-                self.health -= 25
+                self.health -= 20
             if self.image == self.game.player_left or self.image == self.game.player_left_maczuga or self.image == self.game.player_left_miecz:
                 self.vel.x += 20
                 self.vel.y += 5
@@ -202,7 +202,7 @@ class Player(pygame.sprite.Sprite):
                 self.health -= 20
             if self.image == self.game.player_crouch_left:
                 self.vel.x += 20
-                self.health -= 25
+                self.health -= 20
 
             self.timer = 0
 
