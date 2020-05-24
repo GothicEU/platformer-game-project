@@ -195,7 +195,7 @@ class Player(pygame.sprite.Sprite):
                 self.health -= 20
             if self.image == self.game.player_left or self.image == self.game.player_left_maczuga or self.image == self.game.player_left_miecz:
                 self.vel.x += 20
-                self.vel.y += 5
+                self.vel.y -= 5
                 self.health -= 20
             if self.image == self.game.player_crouch_right:
                 self.vel.x -= 20
@@ -255,8 +255,8 @@ class Player(pygame.sprite.Sprite):
             self.game.change_level()
 
         if self.exp >= self.max_exp:
-            self.max_health += 50
-            self.health += 50
+            self.max_health += 20
+            self.health += 20
             self.level += 1
             self.exp = self.exp - self.max_exp
             self.max_exp += 100
@@ -284,13 +284,13 @@ class Player(pygame.sprite.Sprite):
         hits = pygame.sprite.spritecollide(self, self.game.walls, False, pygame.sprite.collide_mask)
         self.rect.x -= 1
         if hits:
-            self.vel.y = -10
+            self.vel.y = -15
             self.vel.x = -20
         self.rect.x -= 1
         hits = pygame.sprite.spritecollide(self, self.game.walls, False, pygame.sprite.collide_mask)
         self.rect.x += 1
         if hits:
-            self.vel.y = -10
+            self.vel.y = -15
             self.vel.x = 20
 
     def r_dash(self):
@@ -1058,9 +1058,10 @@ class Lives(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        if self.rect.x - 40 < self.game.player.rect.x < self.rect.x + 17 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
-            self.kill()
-            self.game.player.lives += 1
+        if self.game.player.lives < 5:
+            if self.rect.x - 40 < self.game.player.rect.x < self.rect.x + 17 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
+                self.kill()
+                self.game.player.lives += 1
 
 
 class Attack(pygame.sprite.Sprite):
@@ -1155,7 +1156,6 @@ class Miecz(pygame.sprite.Sprite):
         if self.rect.x - 40 < self.game.player.rect.x < self.rect.x + 17 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
             self.kill()
             self.game.player.isMiecz = True
-            self.game.player.weapon_select = 0
             if not self.game.player.isCrouching:
                 if self.game.player.image == self.game.player_right or self.game.player.image == self.game.player_right_maczuga:
                     self.game.player.image = self.game.player_right_miecz
@@ -1179,7 +1179,6 @@ class Kusza(pygame.sprite.Sprite):
         if self.rect.x - 40 < self.game.player.rect.x < self.rect.x + 17 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
             self.kill()
             self.game.player.isKusza = True
-            self.game.player.weapon_select = 2
 
 
 class Level(pygame.sprite.Sprite):

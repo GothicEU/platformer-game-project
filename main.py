@@ -389,9 +389,9 @@ class Game:
                     self.running = False
                 if event.key == pygame.K_SPACE:
                     self.player.rect.x -= 1
-                    hits = pygame.sprite.spritecollide(self.player, self.walls, False)
+                    hits = pygame.sprite.spritecollide(self.player, self.walls, False, pygame.sprite.collide_mask)
                     self.player.rect.x += 2
-                    hits2 = pygame.sprite.spritecollide(self.player, self.walls, False)
+                    hits2 = pygame.sprite.spritecollide(self.player, self.walls, False, pygame.sprite.collide_mask)
                     self.player.rect.x -= 1
                     if self.player.vel.y == 0 and not self.player.isJumping and not self.player.isCrouching:
                         self.player.jump()
@@ -423,13 +423,13 @@ class Game:
                         elif self.player.weapon_select == 2 and not self.player.fired:
                             self.player.fired = True
                             Bolt(self)
-                if event.key == pygame.K_1 and self.player.isMiecz:
+                if event.key == pygame.K_2 and self.player.isMiecz:
                     self.player.weapon_select = 0
                     if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right_miecz
                     else:
                         self.player.image = self.player_left_miecz
-                if event.key == pygame.K_2 and self.player.isMaczuga:
+                if event.key == pygame.K_1 and self.player.isMaczuga:
                     self.player.weapon_select = 1
                     if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right_maczuga
@@ -547,7 +547,7 @@ class Game:
         self.new()
         self.player.level = self.temp_level
         self.player.exp = self.temp_exp
-        self.player.max_health = 100 + 50 * (self.player.level - 1)
+        self.player.max_health = 100 + 20 * (self.player.level - 1)
         self.player.health = self.player.max_health
         self.player.max_exp = 500 + 100 * (self.player.level - 1)
         self.player.weapon_select = self.temp_weapon
