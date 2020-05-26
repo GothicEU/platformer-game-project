@@ -1346,13 +1346,13 @@ class Cannon_right(pygame.sprite.Sprite):
         self.y = y
         self.health = 25
         self.timer = 0
-        self.timer1 = 0
+        self.timer1 = 100
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE - 18
 
     def update(self):
         self.timer1 += 1
-        if self.timer1 > 50:
+        if self.timer1 > 100:
             Cannon_ball_right(self.game, self.x, self.y)
             self.timer1 = 0
 
@@ -1386,13 +1386,13 @@ class Cannon_left(pygame.sprite.Sprite):
         self.y = y
         self.health = 25
         self.timer = 0
-        self.timer1 = 0
+        self.timer1 = 100
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE - 18
 
     def update(self):
         self.timer1 += 1
-        if self.timer1 > 50:
+        if self.timer1 > 100:
             Cannon_ball_left(self.game, self.x, self.y)
             self.timer1 = 0
 
@@ -1431,7 +1431,7 @@ class Cannon_ball_left(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
-        self.vel = -10
+        self.vel = -9
         self.timer = 0
         self.rect.x = x * TILESIZE - 15
         self.rect.y = y * TILESIZE + 9
@@ -1458,7 +1458,7 @@ class Cannon_ball_right(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
-        self.vel = 10
+        self.vel = 9
         self.timer = 0
         self.rect.x = x * TILESIZE + 46
         self.rect.y = y * TILESIZE + 9
