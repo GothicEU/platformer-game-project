@@ -1487,3 +1487,22 @@ class Grave3(pygame.sprite.Sprite):
         self.y = y
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
+
+
+class Credits(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.credits
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
+
+    def update(self):
+        self.rect.y -= 5
+        if self.rect.y < -200:
+            self.game.exit_game()
+

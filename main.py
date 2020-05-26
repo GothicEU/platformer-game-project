@@ -15,6 +15,8 @@ def change_map():
         game_map = 'map4.txt'
     elif game_map == 'map4.txt':
         game_map = 'map5.txt'
+    elif game_map == 'map5.txt':
+        game_map = 'credits.txt'
 
 
 def collision_test(rect, tiles):
@@ -107,6 +109,11 @@ class Game:
         with open(os.path.join(game_folder, game_map), 'rt') as f:
             for line in f:
                 self.map_data.append(line)
+        self.end_screen = pygame.image.load('end_screen.png')
+        self.end_screen = pygame.transform.scale(self.end_screen, (WIDTH, HEIGHT))
+        self.credits = pygame.image.load('credits.PNG').convert_alpha()
+        self.credits = pygame.transform.scale(self.credits,
+                                                 (self.credits.get_width(), self.credits.get_height()))
         self.ghost_left = pygame.image.load('ghost_left.PNG').convert_alpha()
         self.ghost_left = pygame.transform.scale(self.ghost_left,
                                                  (self.ghost_left.get_width(), self.ghost_left.get_height()))
@@ -326,12 +333,6 @@ class Game:
                     Grave3(self, col, row)
                 if tile == "O":
                     Door(self, col, row)
-        for row, tiles in enumerate(self.map_data):
-            for col, tile in enumerate(tiles):
-                if tile == "P":
-                    self.player = Player(self, col, row)
-        for row, tiles in enumerate(self.map_data):
-            for col, tile in enumerate(tiles):
                 if tile == 'M':
                     Mob(self, col, row)
                 if tile == 'Z':
@@ -342,6 +343,12 @@ class Game:
                     Cannon_right(self, col, row)
                 if tile == "+":
                     Cannon_left(self, col, row)
+        for row, tiles in enumerate(self.map_data):
+            for col, tile in enumerate(tiles):
+                if tile == "P":
+                    self.player = Player(self, col, row)
+        for row, tiles in enumerate(self.map_data):
+            for col, tile in enumerate(tiles):
                 if tile == "R":
                     Wall5(self, col, row)
         for row, tiles in enumerate(self.map_data):
@@ -360,6 +367,8 @@ class Game:
                     Spikes3(self, col, row)
                 if tile == "6":
                     Spikes4(self, col, row)
+                if tile == "a":
+                    Credits(self, col, row)
 
     def run(self):
         # Game Loop
@@ -487,15 +496,18 @@ class Game:
             self.screen.blit(self.tlo, (0, 0))
         elif game_map == 'map3.txt' or game_map == 'map4.txt':
             self.screen.blit(self.tlo2, (0, 0))
+        elif game_map == 'credits.txt':
+            screen.fill(BLACK)
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
-        draw_player_health(self.screen, 10, 10, self.player.health / self.player.max_health)
-        draw_player_exp(self.screen, 10, 40, self.player.exp / self.player.max_exp)
-        self.draw_exp()
-        self.draw_health()
-        self.draw_level()
-        draw_player_lives(self.player.lives)
-        draw_player_icons(self)
+        if game_map != 'credits.txt':
+            draw_player_health(self.screen, 10, 10, self.player.health / self.player.max_health)
+            draw_player_exp(self.screen, 10, 40, self.player.exp / self.player.max_exp)
+            self.draw_exp()
+            self.draw_health()
+            self.draw_level()
+            draw_player_lives(self.player.lives)
+            draw_player_icons(self)
         pygame.display.update((0, 0, WIDTH, HEIGHT))
 
     def show_start_screen(self):
@@ -538,45 +550,60 @@ class Game:
                         self.running = False
 
     def change_level(self):
-        self.temp_exp = self.player.exp
-        self.temp_level = self.player.level
-        self.temp_weapon = self.player.weapon_select
-        self.temp_lives = self.player.lives
-        change_map()
-        self.load_data()
-        self.new()
-        self.player.level = self.temp_level
-        self.player.exp = self.temp_exp
-        self.player.max_health = 100 + 20 * (self.player.level - 1)
-        self.player.health = self.player.max_health
-        self.player.max_exp = 500 + 100 * (self.player.level - 1)
-        self.player.weapon_select = self.temp_weapon
-        self.player.lives = self.temp_lives
-        if game_map == "map2.txt":
-            self.player.isKusza = True
-            self.player.isMaczuga = True
-            self.player.hasSneakers = True
+            self.temp_exp = self.player.exp
+            self.temp_level = self.player.level
+            self.temp_weapon = self.player.weapon_select
+            self.temp_lives = self.player.lives
+            change_map()
+            self.load_data()
+            self.new()
+            if game_map != "credits.txt":
+                self.player.level = self.temp_level
+                self.player.exp = self.temp_exp
+                self.player.max_health = 100 + 20 * (self.player.level - 1)
+                self.player.health = self.player.max_health
+                self.player.max_exp = 500 + 100 * (self.player.level - 1)
+                self.player.weapon_select = self.temp_weapon
+                self.player.lives = self.temp_lives
+                if game_map == "map2.txt":
+                    self.player.isKusza = True
+                    self.player.isMaczuga = True
+                    self.player.hasSneakers = True
 
-        if game_map == "map3.txt":
-            self.player.isKusza = True
-            self.player.isMaczuga = True
-            self.player.hasSneakers = True
-            self.player.hasWalljump = True
-            self.player.hasDash = True
+                if game_map == "map3.txt":
+                    self.player.isKusza = True
+                    self.player.isMaczuga = True
+                    self.player.hasSneakers = True
+                    self.player.hasWalljump = True
+                    self.player.hasDash = True
 
-        if game_map == "map4.txt" or game_map == "map5.txt":
-            self.player.isMiecz = True
-            self.player.isKusza = True
-            self.player.isMaczuga = True
-            self.player.hasSneakers = True
-            self.player.hasWalljump = True
-            self.player.hasDash = True
-        if self.player.weapon_select == 0:
-            self.player.image = self.player_right_miecz
-        elif self.player.weapon_select == 1:
-            self.player.image = self.player_right_maczuga
-        elif self.player.weapon_select == 2:
-            self.player.image = self.player_right
+                if game_map == "map4.txt" or game_map == "map5.txt":
+                    self.player.isMiecz = True
+                    self.player.isKusza = True
+                    self.player.isMaczuga = True
+                    self.player.hasSneakers = True
+                    self.player.hasWalljump = True
+                    self.player.hasDash = True
+
+                if self.player.weapon_select == 0:
+                    self.player.image = self.player_right_miecz
+                elif self.player.weapon_select == 1:
+                    self.player.image = self.player_right_maczuga
+                elif self.player.weapon_select == 2:
+                    self.player.image = self.player_right
+
+    def exit_game(self):
+        waiting = True
+        self.screen.blit(self.end_screen, (0, 0))
+        pygame.display.flip()
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        waiting = False
+                        self.playing = False
+                        self.running = False
 
 
 g = Game()
