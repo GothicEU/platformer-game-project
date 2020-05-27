@@ -1051,7 +1051,7 @@ class Lives(pygame.sprite.Sprite):
         self.rect.y = y * TILESIZE
 
     def update(self):
-        if self.rect.x - 40 < self.game.player.rect.x < self.rect.x + 17 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32:
+        if self.rect.x - 40 < self.game.player.rect.x < self.rect.x + 17 and self.rect.y - 63 < self.game.player.rect.y < self.rect.y + 32 and self.game.player.lives < 5:
             self.kill()
             self.game.player.lives += 1
 
