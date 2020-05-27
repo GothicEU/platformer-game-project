@@ -90,7 +90,6 @@ def change_levels():
 
 class Game:
     def __init__(self):
-        # intialize game window, etc
         global game_map
         pygame.init()
         pygame.mixer.init()
@@ -268,7 +267,6 @@ class Game:
         self.player_image = self.player_right
 
     def new(self):
-        # start a new game
         self.all_sprites = pygame.sprite.Group()
         self.cannon_balls = pygame.sprite.Group()
         self.walls = pygame.sprite.Group()
@@ -337,6 +335,8 @@ class Game:
                     Mob(self, col, row)
                 if tile == 'Z':
                     Mob2(self, col, row)
+                if tile == "Q":
+                    Mob4(self, col, row)
                 if tile == "J":
                     Mob3(self, col, row)
                 if tile == "-":
@@ -355,8 +355,6 @@ class Game:
             for col, tile in enumerate(tiles):
                 if tile == "V":
                     Gates(self, col, row)
-                if tile == "Q":
-                    Mob4(self, col, row)
                 if tile == "F":
                     Fence(self, col, row)
                 if tile == "3":
@@ -371,7 +369,6 @@ class Game:
                     Credits(self, col, row)
 
     def run(self):
-        # Game Loop
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000.0
             self.event()
@@ -380,7 +377,6 @@ class Game:
             self.clock.tick(FPS)
 
     def update(self):
-        # Game Loop update
         self.all_sprites.update()
         self.camera.update(self.player)
 
@@ -390,7 +386,6 @@ class Game:
                 self.playing = False
 
     def event(self):
-        # Game Loop events
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -511,7 +506,6 @@ class Game:
         pygame.display.update((0, 0, WIDTH, HEIGHT))
 
     def show_start_screen(self):
-        # game splash/start screen
         self.screen.blit(self.start_screen, (0, 0))
         self.screen.blit(self.title, (100, 100))
         self.screen.blit(self.napis_startowy, (150, 300))
@@ -528,7 +522,6 @@ class Game:
                         self.running = False
 
     def show_go_screen(self):
-        # game over/continue
         global game_map
         if not self.running:
             return
@@ -550,47 +543,47 @@ class Game:
                         self.running = False
 
     def change_level(self):
-            self.temp_exp = self.player.exp
-            self.temp_level = self.player.level
-            self.temp_weapon = self.player.weapon_select
-            self.temp_lives = self.player.lives
-            change_map()
-            self.load_data()
-            self.new()
-            if game_map != "credits.txt":
-                self.player.level = self.temp_level
-                self.player.exp = self.temp_exp
-                self.player.max_health = 100 + 20 * (self.player.level - 1)
-                self.player.health = self.player.max_health
-                self.player.max_exp = 500 + 100 * (self.player.level - 1)
-                self.player.weapon_select = self.temp_weapon
-                self.player.lives = self.temp_lives
-                if game_map == "map2.txt":
-                    self.player.isKusza = True
-                    self.player.isMaczuga = True
-                    self.player.hasSneakers = True
+        self.temp_exp = self.player.exp
+        self.temp_level = self.player.level
+        self.temp_weapon = self.player.weapon_select
+        self.temp_lives = self.player.lives
+        change_map()
+        self.load_data()
+        self.new()
+        if game_map!="credits.txt":
+            self.player.level = self.temp_level
+            self.player.exp = self.temp_exp
+            self.player.max_health = 100 + 20 * (self.player.level - 1)
+            self.player.health = self.player.max_health
+            self.player.max_exp = 500 + 100 * (self.player.level - 1)
+            self.player.weapon_select = self.temp_weapon
+            self.player.lives = self.temp_lives
+            if game_map=="map2.txt":
+                self.player.isKusza = True
+                self.player.isMaczuga = True
+                self.player.hasSneakers = True
 
-                if game_map == "map3.txt":
-                    self.player.isKusza = True
-                    self.player.isMaczuga = True
-                    self.player.hasSneakers = True
-                    self.player.hasWalljump = True
-                    self.player.hasDash = True
+            if game_map=="map3.txt":
+                self.player.isKusza = True
+                self.player.isMaczuga = True
+                self.player.hasSneakers = True
+                self.player.hasWalljump = True
+                self.player.hasDash = True
 
-                if game_map == "map4.txt" or game_map == "map5.txt":
-                    self.player.isMiecz = True
-                    self.player.isKusza = True
-                    self.player.isMaczuga = True
-                    self.player.hasSneakers = True
-                    self.player.hasWalljump = True
-                    self.player.hasDash = True
+            if game_map=="map4.txt" or game_map=="map5.txt":
+                self.player.isMiecz = True
+                self.player.isKusza = True
+                self.player.isMaczuga = True
+                self.player.hasSneakers = True
+                self.player.hasWalljump = True
+                self.player.hasDash = True
 
-                if self.player.weapon_select == 0:
-                    self.player.image = self.player_right_miecz
-                elif self.player.weapon_select == 1:
-                    self.player.image = self.player_right_maczuga
-                elif self.player.weapon_select == 2:
-                    self.player.image = self.player_right
+            if self.player.weapon_select==0:
+                self.player.image = self.player_right_miecz
+            elif self.player.weapon_select==1:
+                self.player.image = self.player_right_maczuga
+            elif self.player.weapon_select==2:
+                self.player.image = self.player_right
 
     def exit_game(self):
         waiting = True
