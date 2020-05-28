@@ -427,19 +427,19 @@ class Game:
                         elif self.player.weapon_select == 2 and not self.player.fired:
                             self.player.fired = True
                             Bolt(self)
-                if event.key == pygame.K_2 and self.player.isMiecz:
+                if event.key == pygame.K_2 and self.player.isMiecz and not self.player.isCrouching:
                     self.player.weapon_select = 0
                     if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right_miecz
                     else:
                         self.player.image = self.player_left_miecz
-                if event.key == pygame.K_1 and self.player.isMaczuga:
+                if event.key == pygame.K_1 and self.player.isMaczuga and not self.player.isCrouching:
                     self.player.weapon_select = 1
                     if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right_maczuga
                     else:
                         self.player.image = self.player_left_maczuga
-                if event.key == pygame.K_3 and self.player.isKusza:
+                if event.key == pygame.K_3 and self.player.isKusza and not self.player.isCrouching:
                     self.player.weapon_select = 2
                     if self.player.image == self.player_right or self.player.image == self.player_attack_right_maczuga or self.player.image == self.player_attack_right_miecz or self.player.image == self.player_right_maczuga or self.player.image == self.player_right_miecz:
                         self.player.image = self.player_right
